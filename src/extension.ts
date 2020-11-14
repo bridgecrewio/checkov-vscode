@@ -19,9 +19,7 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	let cmd = vscode.commands.registerCommand('checkov.scan-file', () => {
-		// The code you place here will be executed every time your command is executed
-
-		// Display a message box to the user
+		
 		if (vscode.window.activeTextEditor) {
 			runScan(vscode.window.activeTextEditor);
 		}
@@ -64,8 +62,8 @@ export function activate(context: vscode.ExtensionContext) {
 
 			for (const failure of failedChecks) {
 				const startLine = failure.file_line_range[0];
-				const line = editor.document.lineAt(startLine - 1);
-				const startPos = line.range.start.translate(undefined, line.firstNonWhitespaceCharacterIndex);
+				const line = editor.document.lineAt(failure.file_line_range[0] - 1); // checkov results are 1-based; these lines are 0-based
+				const startPos = line.range.start.translate({characterDelta: line.firstNonWhitespaceCharacterIndex});
 				const decoration = {
 					'range': new vscode.Range(startPos, line.range.end),
 					'hoverMessage': `${failure.check_id}: ${failure.check_name}`
@@ -78,5 +76,4 @@ export function activate(context: vscode.ExtensionContext) {
 	}
 }
 
-// this method is called when your extension is deactivated
 export function deactivate() {}
