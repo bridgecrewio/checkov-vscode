@@ -6,6 +6,8 @@ To use:
 
 Pre-req: Ensure you have the `checkov` command available globally (e.g., `pip3 install checkov` using the system python3 installation). The current method of execution cannot pick up shell aliases, functions, etc.
 
+(However, you can modify the command to run from your local repo by setting `PYTHONPATH` in the command options, and invoking your local checkov virtualenv/pipenv.)
+
 1. Clone this repo and open it in VSCode.
 2. Press F5 - this opens a VSCode instance with the extension loaded
 3. Open a file that checkov can scan
