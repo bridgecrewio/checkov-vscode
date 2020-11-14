@@ -6,7 +6,7 @@ To use:
 
 Pre-req: Ensure you have the `checkov` command available globally (e.g., `pip3 install checkov` using the system python3 installation). The current method of execution cannot pick up shell aliases, functions, etc.
 
-However, you can modify the command to run from your local repo by setting `PYTHONPATH` in the command options, and invoking your local checkov virtualenv/pipenv. This is useful if you like to have the `checkov` command always run your local repo clone.
+However, you can modify the command to run from your local repo by setting `PYTHONPATH` in the command options, and invoking your local checkov virtualenv/pipenv. This is useful if you like to have the `checkov` command in your shell always run your local repo clone.
 
 Example:
 ```
