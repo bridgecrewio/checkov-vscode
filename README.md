@@ -20,7 +20,7 @@ There are many improvements to be made around overall usability (e.g., checking 
 A few immediate to-do items include:
 
 1. Keep the editor decorations active if the active editor is changed (they go away if you switch to a new file and then switch back)
-2. Figure out a way to scan more dynamically without actually running a scan every time the user edits the file (maybe on save?)
+2. Figure out a way to scan more dynamically without actually running a scan every time the user edits the file (e.g., when the file is saved, but it would be nice to do it more real-time)
 
 ## Docs for VSCode extensions
 
