@@ -8,12 +8,13 @@
     "plugins": [
         "@typescript-eslint"
     ],
+    "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
     "rules": {
-        "@typescript-eslint/naming-convention": "warn",
-        "@typescript-eslint/semi": "warn",
-        "curly": "warn",
-        "eqeqeq": "warn",
+        "indent": ["error", 4, { "SwitchCase": 1, "FunctionDeclaration": { "parameters": "first" } }],
+        "@typescript-eslint/semi": "error",
+        "eqeqeq": "error",
         "no-throw-literal": "warn",
-        "semi": "off"
+        "object-curly-spacing": ["error", "always"],
+        "eol-last": "error"
     }
 }

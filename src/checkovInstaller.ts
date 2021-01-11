@@ -1,4 +1,4 @@
-import {exec} from 'child_process';
+import { exec } from 'child_process';
 
 const getPipenvVersion = async () : Promise<string | null> => {
     return new Promise((resolve, reject) => {
@@ -56,5 +56,5 @@ export const installOrUpdateCheckov = async () : Promise<CheckovInstalltion> => 
     }
     console.log('Checkov updated successfully.');
 
-    return {checkovPython};
+    return { checkovPython };
 };
