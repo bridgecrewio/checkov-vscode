@@ -11,7 +11,8 @@ export const applyDiagnostics = (document: vscode.TextDocument, diagnostics: vsc
         foundDiagnostics.push({
             message: `${failure.check_id}: ${failure.check_name}`, 
             range: new vscode.Range(startPos, line.range.end),
-            severity: vscode.DiagnosticSeverity.Warning
+            severity: vscode.DiagnosticSeverity.Warning,
+            source: 'Bridgecrew',
         });
     }
 

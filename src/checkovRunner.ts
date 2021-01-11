@@ -33,7 +33,7 @@ export const runCheckovScan = (fileName: string): Promise<CheckovResponse> => {
 			
         ckv.on("close", code => {
             console.debug(`Checkov scan process exited with code ${code}`);
-            if (code !== 0) return reject(`Checkov exited with code ${code}`);
+            if (code !== 1) return reject(`Checkov exited with code ${code}`); // Check about checkov
 	
             console.debug(`Checkov task output: ${stdout}`);
             const output: CheckovResponse = JSON.parse(stdout);

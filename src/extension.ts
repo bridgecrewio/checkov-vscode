@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import { partial } from 'ramda';
 import { runCheckovScan } from './checkovRunner';
 import { applyDiagnostics } from './diagnostics';
 
