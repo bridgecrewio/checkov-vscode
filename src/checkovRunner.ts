@@ -1,15 +1,28 @@
 import { spawn } from "child_process";
 
 export interface FailedCheckovCheck {
-    "check_id": string;
-    "check_name": string;
-    file_line_range: [number, number];
+    checkId: string;
+    checkName: string;
+    fileLineRange: [number, number];
     resource: string;
 }
 
 interface CheckovResponse {
     results: {
-        failed_checks: FailedCheckovCheck[];
+        failedChecks: FailedCheckovCheck[];
+    };
+}
+
+interface FailedCheckovCheckRaw {
+    check_id: string;
+    check_name: string;
+    file_line_range: [number, number];
+    resource: string;
+}
+
+interface CheckovResponseRaw {
+    results: {
+        failed_checks: FailedCheckovCheckRaw[];
     };
 }
 
@@ -36,9 +49,22 @@ export const runCheckovScan = (fileName: string): Promise<CheckovResponse> => {
             if (code !== 1) return reject(`Checkov exited with code ${code}`); // Check about checkov
 	
             console.debug(`Checkov task output: ${stdout}`);
-            const output: CheckovResponse = JSON.parse(stdout);
+            const output: CheckovResponseRaw = JSON.parse(stdout);
 	
-            resolve(output);
+            resolve(parseCheckovResponse(output));
         });
     });
+};
+
+const parseCheckovResponse = (rawResponse: CheckovResponseRaw): CheckovResponse => {
+    return {
+        results: {
+            failedChecks: rawResponse.results.failed_checks.map(rawCheck => ({ 
+                checkId: rawCheck.check_id, 
+                checkName: rawCheck.check_name, 
+                fileLineRange: rawCheck.file_line_range,
+                resource: rawCheck.resource 
+            }))
+        }
+    };
 };

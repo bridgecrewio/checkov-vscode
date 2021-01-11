@@ -5,14 +5,14 @@ export const applyDiagnostics = (document: vscode.TextDocument, diagnostics: vsc
     const foundDiagnostics: vscode.Diagnostic[] = [];
     
     for (const failure of failedCheckovChecks) {
-        const line = document.lineAt(failure.file_line_range[0] - 1); // checkov results are 1-based; these lines are 0-based
+        const line = document.lineAt(failure.fileLineRange[0] - 1); // checkov results are 1-based; these lines are 0-based
         const startPos = line.range.start.translate({ characterDelta: line.firstNonWhitespaceCharacterIndex });
         
         foundDiagnostics.push({
-            message: `${failure.check_id}: ${failure.check_name}`, 
+            message: `${failure.checkId}: ${failure.checkName}`, 
             range: new vscode.Range(startPos, line.range.end),
             severity: vscode.DiagnosticSeverity.Warning,
-            source: 'Bridgecrew',
+            source: 'Bridgecrew'
         });
     }
 

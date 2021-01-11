@@ -22,7 +22,7 @@ export function activate(context: vscode.ExtensionContext): void {
         console.log('Starting to scan.');
         try {
             const checkovResponse = await runCheckovScan(editor.document.fileName);
-            applyDiagnostics(editor.document, diagnostics, checkovResponse.results.failed_checks);
+            applyDiagnostics(editor.document, diagnostics, checkovResponse.results.failedChecks);
         } catch (error) {
             console.error('Error occurred.', error);
         }
