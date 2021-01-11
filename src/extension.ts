@@ -4,7 +4,7 @@ import { runCheckovScan } from './checkovRunner';
 import { applyDiagnostics } from './diagnostics';
 
 // this method is called when extension is activated
-export function activate(context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext): void {
 	// Set diagnostics
 	const diagnostics = vscode.languages.createDiagnosticCollection('bridgecrew-alerts');
     context.subscriptions.push(diagnostics);
@@ -26,5 +26,3 @@ export function activate(context: vscode.ExtensionContext) {
 		runCheckovScan(editor.document.fileName, handleFailedCheck);
 	}
 }
-
-export function deactivate() {}

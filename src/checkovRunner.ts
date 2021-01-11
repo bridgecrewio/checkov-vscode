@@ -1,9 +1,8 @@
-import * as vscode from 'vscode';
 import { spawn } from "child_process";
 
 export interface FailedCheckovCheck {
-    check_id: string;
-    check_name: string;
+    "check_id": string;
+    "check_name": string;
     file_line_range: [number, number];
     resource: string;
 }
@@ -12,7 +11,7 @@ interface CheckovResponse {
     results: {
         failed_checks: FailedCheckovCheck[];
     };
-};
+}
 
 export const runCheckovScan = (fileName: string, failedHandler: (checks: FailedCheckovCheck[]) => void): void => {
 		console.log('Running checkov on', fileName);
@@ -39,4 +38,4 @@ export const runCheckovScan = (fileName: string, failedHandler: (checks: FailedC
 
             failedHandler(output.results.failed_checks);
         });
-}
+};
