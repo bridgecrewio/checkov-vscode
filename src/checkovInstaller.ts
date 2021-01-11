@@ -50,8 +50,9 @@ interface CheckovInstalltion {
 
 export const installOrUpdateCheckov = async (): Promise<CheckovInstalltion> => {
     if (isMac() && await isBrewInstalled()) {
-        console.log('Trying to install with Mac Brew.');
         await updateCheckovWithBrew();
+        console.log('Checkov updated successfully using brew');
+
         return { checkovPython: 'brew' };
     }
 
@@ -65,7 +66,9 @@ export const installOrUpdateCheckov = async (): Promise<CheckovInstalltion> => {
         console.log(`Pipenv is not installed, using system's python.`);
         await updateCheckovWithSystemPython();
     }
-    console.log('Checkov updated successfully. Using', checkovPython);
+    console.log('Checkov updated successfully using', checkovPython);
 
     return { checkovPython };
 };
+
+installOrUpdateCheckov();

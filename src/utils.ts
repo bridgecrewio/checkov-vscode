@@ -1,4 +1,4 @@
-import {exec} from 'child_process';
+import { exec } from 'child_process';
 
 type ExecOutput = [stdout: string, stderr: string];
 export const asyncExec = async <T>(commandToExecute: string) : Promise<ExecOutput> => {
