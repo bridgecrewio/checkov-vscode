@@ -32,7 +32,7 @@ A few immediate to-do items include:
 
 ## Docs for VSCode extensions
 
-Hello world: https://code.visualstudio.com/api/get-started/your-first-extension
-Sample decorator (shows how to update decorations on every file change): https://github.com/microsoft/vscode-extension-samples/tree/master/decorator-sample
+Hello world: https://code.visualstudio.com/api/get-started/your-first-extension  
+Sample decorator (shows how to update decorations on every file change): https://github.com/microsoft/vscode-extension-samples/tree/master decorator-sample  
 VSCode API: https://code.visualstudio.com/api/references/vscode-api
 

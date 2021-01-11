@@ -1,24 +1,15 @@
 import * as vscode from 'vscode';
-import { spawn } from "child_process";
+import { partial } from 'ramda';
+import { runCheckovScan } from './checkovRunner';
+import { applyDiagnostics } from './diagnostics';
 
 // this method is called when extension is activated
 export function activate(context: vscode.ExtensionContext) {
+	// Set diagnostics
+	const diagnostics = vscode.languages.createDiagnosticCollection('bridgecrew-alerts');
+    context.subscriptions.push(diagnostics);
 
-	const decorationType = vscode.window.createTextEditorDecorationType({
-		borderWidth: '1px',
-		borderStyle: 'solid',
-		overviewRulerColor: 'blue',
-		overviewRulerLane: vscode.OverviewRulerLane.Right,
-		light: { // used in light color themes
-			borderColor: 'darkblue'
-		},
-		dark: { // used in dark color themes
-			borderColor: 'lightblue'
-		},
-		textDecoration: 'wavy underline'
-	});
-
-	let cmd = vscode.commands.registerCommand('checkov.scan-file', () => {
+	vscode.commands.registerCommand('checkov.scan-file', () => {
 		
 		if (vscode.window.activeTextEditor) {
 			runScan(vscode.window.activeTextEditor);
@@ -29,50 +20,10 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	function runScan(editor: vscode.TextEditor) {
-		console.log('updateDecorations');
-
-		let rangesToDecorate: vscode.DecorationOptions[] = [];
-		console.log('running checkov');
-
-		const ckv = spawn('checkov', ['-f', editor.document.fileName, '-o', 'json']);
-
-		let stdout = '';
-
-		ckv.stdout.on("data", data => {
-			console.log(`stdout: ${data}`);
-			stdout += data;
-		});
+		console.log('Starting to scan');
+		const handleFailedCheck = partial(applyDiagnostics, [editor.document, diagnostics]);
 		
-		ckv.stderr.on("data", data => {
-			console.log(`stderr: ${data}`);
-		});
-		
-		ckv.on('error', (error) => {
-			console.log(`error: ${error.message}`);
-		});
-		
-		ckv.on("close", code => {
-			console.log(`child process exited with code ${code}`);
-
-			console.log(`task output: ${stdout}`);
-
-			let output = JSON.parse(stdout);
-
-			let failedChecks = output.results.failed_checks;
-
-			for (const failure of failedChecks) {
-				const startLine = failure.file_line_range[0];
-				const line = editor.document.lineAt(failure.file_line_range[0] - 1); // checkov results are 1-based; these lines are 0-based
-				const startPos = line.range.start.translate({characterDelta: line.firstNonWhitespaceCharacterIndex});
-				const decoration = {
-					'range': new vscode.Range(startPos, line.range.end),
-					'hoverMessage': `${failure.check_id}: ${failure.check_name}`
-				};
-				rangesToDecorate.push(decoration);
-			}
-
-			editor.setDecorations(decorationType, rangesToDecorate);
-		});
+		runCheckovScan(editor.document.fileName, handleFailedCheck);
 	}
 }
 
