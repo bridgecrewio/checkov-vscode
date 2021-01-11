@@ -10,6 +10,7 @@
     ],
     "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
     "rules": {
+        "indent": ["error", 4, { "SwitchCase": 1, "FunctionDeclaration": { "parameters": "first" } }],
         "@typescript-eslint/semi": "error",
         "eqeqeq": "error",
         "no-throw-literal": "warn",
