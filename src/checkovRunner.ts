@@ -5,6 +5,7 @@ export interface FailedCheckovCheck {
     checkName: string;
     fileLineRange: [number, number];
     resource: string;
+    guideline: string;
 }
 
 interface CheckovResponse {
@@ -18,6 +19,7 @@ interface FailedCheckovCheckRaw {
     check_name: string;
     file_line_range: [number, number];
     resource: string;
+    guideline: string;
 }
 
 interface CheckovResponseRaw {
@@ -63,7 +65,8 @@ const parseCheckovResponse = (rawResponse: CheckovResponseRaw): CheckovResponse 
                 checkId: rawCheck.check_id, 
                 checkName: rawCheck.check_name, 
                 fileLineRange: rawCheck.file_line_range,
-                resource: rawCheck.resource 
+                resource: rawCheck.resource, 
+                guideline: rawCheck.guideline
             }))
         }
     };
