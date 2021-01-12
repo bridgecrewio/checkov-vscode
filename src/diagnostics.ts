@@ -12,7 +12,7 @@ export const applyDiagnostics = (document: vscode.TextDocument, diagnostics: vsc
             message: failure.checkName, 
             range: new vscode.Range(startPos, line.range.end),
             severity: vscode.DiagnosticSeverity.Warning,
-            source: 'Bridgecrew',
+            source: 'Bridgecrew ',
             code: {
                 target: vscode.Uri.parse(failure.guideline),
                 value: failure.checkId
