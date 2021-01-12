@@ -1,6 +1,6 @@
 {
-	"name": "checkov",
-	"displayName": "Checkov",
+	"name": "bridgecrew",
+	"displayName": "Bridgecrew",
 	"description": "Scans infrastructure as code files for security misconfigurations. https://www.bridgecrew.io",
 	"version": "0.0.1",
 	"engines": {
@@ -19,7 +19,19 @@
 				"command": "checkov.scan-file",
 				"title": "Checkov Scan"
 			}
-		]
+		],
+		"configuration": {
+			"title": "Bridgecrew",
+			"properties": {
+				"bridgecrew.token": {
+					"title": "Token",
+					"type": "string",
+					"description": "Add your Bridgecrew API token, you can find it in the integration section under `API token",
+					"markdownDescription": true,
+					"readOnly": true
+				}
+			}
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
