@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { FailedCheckovCheck } from './checkovRunner';
+import { DiagnosticReferenceCode } from './diagnostics';
 import { CHECKOV_MAP, OPEN_EXTERNAL_COMMAND, REMOVE_DIAGNOSTICS_COMMAND } from './extension';
 import { createDiagnosticKey } from './utils';
 
@@ -12,19 +13,16 @@ const provideFixCodeActions = (workspaceState: vscode.Memento) => (document: vsc
 };
 
 const createCommandCodeAction = (document: vscode.TextDocument, diagnostic: vscode.Diagnostic, checkovCheck: FailedCheckovCheck): vscode.CodeAction[] => {
-    const learnMoreAction: vscode.CodeAction = {
+    const learnMoreAction: vscode.CodeAction[] = [{
         title: `Learn more about - ${checkovCheck.checkName}`,
         kind: vscode.CodeActionKind.Empty,
         diagnostics: [diagnostic],
         command: {
             title: 'See more at Bridgecrew',
             command: OPEN_EXTERNAL_COMMAND,
-            arguments: [(diagnostic.code as {
-                value: string | number;
-                target: vscode.Uri;
-            }).target]
+            arguments: [(diagnostic.code as DiagnosticReferenceCode).target]
         }
-    };
+    }];
     
     const edit: vscode.WorkspaceEdit = new vscode.WorkspaceEdit();
     if (checkovCheck && checkovCheck.fixedDefinition) { 
@@ -43,9 +41,9 @@ const createCommandCodeAction = (document: vscode.TextDocument, diagnostic: vsco
                 command: REMOVE_DIAGNOSTICS_COMMAND
             }
         },
-        learnMoreAction];
+        ...learnMoreAction];
     }
-    return [learnMoreAction];
+    return learnMoreAction;
 };
 
 export const providedCodeActionKinds: vscode.CodeActionKind[] = [
