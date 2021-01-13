@@ -19,6 +19,10 @@
 			{
 				"command": "checkov.scan-file",
 				"title": "Checkov Scan"
+			},
+			{
+				"command": "checkov.install-or-update-checkov",
+				"title": "Install Or Update Checkov"
 			}
 		]
 	},
