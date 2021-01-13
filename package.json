@@ -1,6 +1,7 @@
 {
 	"name": "checkov",
 	"displayName": "Checkov",
+	"publisher": "Bridgecrew",
 	"description": "Scans infrastructure as code files for security misconfigurations. https://www.bridgecrew.io",
 	"version": "0.0.1",
 	"engines": {
@@ -10,7 +11,7 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:checkov.scan-file"
+		"*"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
