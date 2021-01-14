@@ -44,7 +44,7 @@ const updateCheckovWithSystemPython = async (): Promise<void> => {
 };
 
 type CheckovPython = 'pipenv' | 'system' | 'brew';
-interface CheckovInstalltion {
+export interface CheckovInstalltion {
     checkovPython: CheckovPython;
 }
 
@@ -70,5 +70,3 @@ export const installOrUpdateCheckov = async (): Promise<CheckovInstalltion> => {
 
     return { checkovPython };
 };
-
-installOrUpdateCheckov();

@@ -1,27 +1,57 @@
 import * as vscode from 'vscode';
-import { runCheckovScan } from './checkovRunner';
+import { CheckovInstallation, installOrUpdateCheckov } from './checkovInstaller';
+import { runCheckovScan, FailedCheckovCheck } from './checkovRunner';
 import { applyDiagnostics } from './diagnostics';
+import { fixCodeActionProvider, providedCodeActionKinds } from './suggestFix';
+import { createCheckovKey } from './utils';
+
+export const OPEN_EXTERNAL_COMMAND = 'checkov.open-external';
+export const RUN_FILE_SCAN_COMMAND = 'checkov.scan-file';
+export const REMOVE_DIAGNOSTICS_COMMAND = 'checkov.remove-diagnostics';
+const OPEN_CONFIGURATION_COMMAND = 'checkov.open-configuration';
+const INSTALL_OR_UPDATE_CHECKOV_COMMAND = 'checkov.install-or-update-checkov';
+
+export const CHECKOV_MAP = 'checkovMap';
 
 // this method is called when extension is activated
 export function activate(context: vscode.ExtensionContext): void {
-    // Read configuration 
-    const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('bridgecrew');
-    const token = configuration.get('token');
-    if(!token) {
-        vscode.window.showErrorMessage('Bridgecrew API token was not found. Please add it to the configuration.');
-        vscode.window.setStatusBarMessage('$(gear) Bridgecrew');
-    }
-
-    // Display a status bar item
     const statusBarItem: vscode.StatusBarItem = vscode.window.createStatusBarItem();
-    statusBarItem.command = '';
-    vscode.window.setStatusBarMessage('$(check) Bridgecrew');
+    statusBarItem.command = OPEN_CONFIGURATION_COMMAND;
 
-    // Set diagnostics
-    const diagnostics = vscode.languages.createDiagnosticCollection('bridgecrew-alerts');
-    context.subscriptions.push(diagnostics);
+    // install or update the checkov version 
+    vscode.commands.registerCommand(INSTALL_OR_UPDATE_CHECKOV_COMMAND, async () => {
+        try {
+            statusBarItem.text = '$(sync~spin) Checkov';
+            const environment: CheckovInstallation = await installOrUpdateCheckov();
+            console.log(`finished installing checkov on ${environment.checkovPython} python environment.`);
+            
+            afterCheckovInstall();
+        } catch(error) {
+            console.error('Error occurred while trying to install Checkov', error);
+            statusBarItem.text = '$(error) Checkov';
+        }
+    });
+    vscode.commands.executeCommand(INSTALL_OR_UPDATE_CHECKOV_COMMAND);
 
-    vscode.commands.registerCommand('checkov.scan-file', () => {
+    const afterCheckovInstall = () => {
+        // Read configuration 
+        const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('checkov');
+        const token = configuration.get('token');
+        if(!token) {
+            vscode.window.showErrorMessage('Bridgecrew API token was not found. Please add it to the configuration.');
+            statusBarItem.text = '$(gear) Checkov';
+        } else {
+            // do rest 
+        }
+    };
+
+    vscode.window.setStatusBarMessage('$(check) Checkov');
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand(OPEN_EXTERNAL_COMMAND, (uri: vscode.Uri) => vscode.env.openExternal(uri))
+    );
+
+    vscode.commands.registerCommand(RUN_FILE_SCAN_COMMAND, () => {
         
         if (vscode.window.activeTextEditor) {
             runScan(vscode.window.activeTextEditor);
@@ -31,18 +61,42 @@ export function activate(context: vscode.ExtensionContext): void {
         }
     });
 
+    vscode.commands.registerCommand(REMOVE_DIAGNOSTICS_COMMAND, () => {
+        if (vscode.window.activeTextEditor) 
+            applyDiagnostics(vscode.window.activeTextEditor.document, diagnostics, []);
+    });
+
+    // Set diagnostics
+    const diagnostics = vscode.languages.createDiagnosticCollection('checkov-alerts');
+    context.subscriptions.push(diagnostics);
+
+    // set code action provider
+    context.subscriptions.push(
+        vscode.languages.registerCodeActionsProvider({ pattern: ' **/*.tf' }, 
+            fixCodeActionProvider(context.workspaceState), { providedCodeActionKinds: providedCodeActionKinds })
+    );
+    
+    const saveCheckovResult = (checkovFails: FailedCheckovCheck[]) => {
+        const checkovMap = checkovFails.reduce((prev, current) => ({
+            ...prev,
+            [createCheckovKey(current)]: current
+        }), []);
+        context.workspaceState.update(CHECKOV_MAP, checkovMap);
+    };    
+
     async function runScan(editor: vscode.TextEditor) {
         console.log('Starting to scan.');
         try {
             // Indicate scan in status bar item
-            vscode.window.setStatusBarMessage('$(sync~spin) Bridgecrew');
+            statusBarItem.text = '$(sync~spin) Checkov';
 
             const checkovResponse = await runCheckovScan(editor.document.fileName);
+            saveCheckovResult(checkovResponse.results.failedChecks);
             applyDiagnostics(editor.document, diagnostics, checkovResponse.results.failedChecks);
 
-            vscode.window.setStatusBarMessage(`$(${checkovResponse.results.failedChecks.length > 0 ? 'alert' : 'pass'}) Bridgecrew`);
+            statusBarItem.text = `$(${checkovResponse.results.failedChecks.length > 0 ? 'alert' : 'pass'}) Checkov`;
         } catch (error) {
-            vscode.window.setStatusBarMessage('$(error) Bridgecrew');
+            statusBarItem.text = '$(error) Checkov';
             console.error('Error occurred.', error);
             console.log('You can find the log file here', context.logUri.fsPath);
         }

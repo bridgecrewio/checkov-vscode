@@ -8,5 +8,5 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 - Initial release.
 - Run `Checkov` on a file.
-- Display diagnostics errors.
+- Display diagnostics errors with details of the error and a link to Bridgecrew platform.
 - Install and update `Checkov`. 
