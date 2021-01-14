@@ -44,11 +44,11 @@ const updateCheckovWithSystemPython = async (): Promise<void> => {
 };
 
 type CheckovPython = 'pipenv' | 'system' | 'brew';
-export interface CheckovInstalltion {
+export interface CheckovInstallation {
     checkovPython: CheckovPython;
 }
 
-export const installOrUpdateCheckov = async (): Promise<CheckovInstalltion> => {
+export const installOrUpdateCheckov = async (): Promise<CheckovInstallation> => {
     if (isMac() && await isBrewInstalled()) {
         await updateCheckovWithBrew();
         console.log('Checkov updated successfully using brew');

@@ -26,12 +26,12 @@
 			}
 		],
 		"configuration": {
-			"title": "Bridgecrew",
+			"title": "checkov",
 			"properties": {
-				"bridgecrew.token": {
+				"checkov.token": {
 					"title": "Token",
 					"type": "string",
-					"description": "Add your Bridgecrew API token, you can find it in the integration section under `API token",
+					"description": "Add your Bridgecrew API token, you can find it in the integration section under `API token`",
 					"markdownDescription": true,
 					"readOnly": true
 				}
