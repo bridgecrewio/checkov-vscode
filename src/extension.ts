@@ -68,7 +68,7 @@ export function activate(context: vscode.ExtensionContext): void {
     });
 
     vscode.commands.registerCommand(OPEN_CONFIGURATION_COMMAND, () => {
-        vscode.commands.executeCommand('workbench.action.openSettings');
+        vscode.commands.executeCommand('workbench.action.openSettings', '@ext:Bridgecrew.checkov');
     });
 
     // set code action provider
