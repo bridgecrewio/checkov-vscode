@@ -74,5 +74,7 @@
 		"typescript": "^4.0.2",
 		"vscode-test": "^1.4.0"
 	},
-	"dependencies": {}
+	"dependencies": {
+		"winston": "^3.3.3"
+	}
 }

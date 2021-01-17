@@ -1,9 +1,10 @@
 import * as vscode from 'vscode';
+import { Logger } from 'winston';
 import { CheckovInstallation, installOrUpdateCheckov } from './checkovInstaller';
 import { runCheckovScan, FailedCheckovCheck } from './checkovRunner';
 import { applyDiagnostics } from './diagnostics';
 import { fixCodeActionProvider, providedCodeActionKinds } from './suggestFix';
-import { createCheckovKey } from './utils';
+import { createCheckovKey, getLogger } from './utils';
 
 export const OPEN_EXTERNAL_COMMAND = 'checkov.open-external';
 export const RUN_FILE_SCAN_COMMAND = 'checkov.scan-file';
@@ -12,9 +13,11 @@ const OPEN_CONFIGURATION_COMMAND = 'checkov.configuration.open';
 const INSTALL_OR_UPDATE_CHECKOV_COMMAND = 'checkov.install-or-update-checkov';
 
 export const CHECKOV_MAP = 'checkovMap';
+const logFileName = 'checkov.log';
 
 // this method is called when extension is activated
 export function activate(context: vscode.ExtensionContext): void {
+    const logger: Logger = getLogger(context.logUri.fsPath, logFileName);
     
     const statusBarItem: vscode.StatusBarItem = vscode.window.createStatusBarItem();
     statusBarItem.command = OPEN_CONFIGURATION_COMMAND;
@@ -35,8 +38,7 @@ ${context.logUri.fsPath}`;
                 if (!choice) return;
                 
                 if (choice === 'Open log') {
-                    console.log(context.logUri.fsPath);
-                    vscode.window.showTextDocument(context.logUri);
+                    vscode.window.showTextDocument(vscode.Uri.joinPath(context.logUri, logFileName));
                     return;
                 }
 
@@ -57,7 +59,7 @@ ${context.logUri.fsPath}`;
         const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('checkov');
         const token = configuration.get('token');
         if(!token) {
-            console.error('Bridgecrew API token was not found. Please add it to the configuration.');
+            logger.error('Bridgecrew API token was not found. Please add it to the configuration.');
             vscode.window.showErrorMessage('Bridgecrew API token was not found. Please add it to the configuration.');
             statusBarItem.text = '$(gear) Checkov';
         }
@@ -68,12 +70,12 @@ ${context.logUri.fsPath}`;
     vscode.commands.registerCommand(INSTALL_OR_UPDATE_CHECKOV_COMMAND, async () => {
         try {
             statusBarItem.text = '$(sync~spin) Checkov';
-            const environment: CheckovInstallation = await installOrUpdateCheckov();
-            console.log(`finished installing checkov on ${environment.checkovPython} python environment.`);
+            const environment: CheckovInstallation = await installOrUpdateCheckov(logger);
+            logger.info(`finished installing checkov on ${environment.checkovPython} python environment.`);
             statusBarItem.text = 'Checkov';
         } catch(error) {
             statusBarItem.text = '$(error) Checkov';
-            console.error('Error occurred while trying to install Checkov', error);
+            logger.error('Error occurred while trying to install Checkov', { error });
             showContactUsDetails();
         }
     });
@@ -115,19 +117,19 @@ ${context.logUri.fsPath}`;
     };
 
     async function runScan(editor: vscode.TextEditor) {
-        console.log('Starting to scan.');
+        logger.info('Starting to scan.');
         try {
             // Indicate scan in status bar item
             statusBarItem.text = '$(sync~spin) Checkov';
 
-            const checkovResponse = await runCheckovScan(editor.document.fileName);
+            const checkovResponse = await runCheckovScan(logger, editor.document.fileName);
             saveCheckovResult(checkovResponse.results.failedChecks);
             applyDiagnostics(editor.document, diagnostics, checkovResponse.results.failedChecks);
 
             statusBarItem.text = `$(${checkovResponse.results.failedChecks.length > 0 ? 'alert' : 'pass'}) Checkov`;
         } catch (error) {
             statusBarItem.text = '$(error) Checkov';
-            console.error('Error occurred while running a checkov scan', error);
+            logger.error('Error occurred while running a checkov scan', { error });
             showContactUsDetails();
         }
     }

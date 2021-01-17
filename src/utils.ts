@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { exec } from 'child_process';
 import { FailedCheckovCheck } from './checkovRunner';
 import { DiagnosticReferenceCode } from './diagnostics';
+import winston = require('winston');
 
 type ExecOutput = [stdout: string, stderr: string];
 export const asyncExec = async (commandToExecute: string) : Promise<ExecOutput> => {
@@ -16,3 +17,18 @@ export const asyncExec = async (commandToExecute: string) : Promise<ExecOutput> 
 export const createDiagnosticKey = (diagnostic: vscode.Diagnostic): string => 
     `${(diagnostic.code as DiagnosticReferenceCode).value}-${diagnostic.range.start.line + 1}`;
 export const createCheckovKey = (checkovFail: FailedCheckovCheck): string => `${checkovFail.checkId}-${checkovFail.fileLineRange[0]}`;
+
+export const getLogger = (logFileDir: string, logFileName: string): winston.Logger => winston.createLogger({
+    level: 'debug',
+    format: winston.format.combine(
+        winston.format.simple(),
+        winston.format.timestamp()
+    ),
+    transports: [
+        new winston.transports.File({
+            level: 'debug',
+            dirname: logFileDir,
+            filename: logFileName
+        })
+    ]
+});

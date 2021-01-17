@@ -1,4 +1,5 @@
 import { spawn } from "child_process";
+import { Logger } from "winston";
 
 export interface FailedCheckovCheck {
     checkId: string;
@@ -32,9 +33,9 @@ interface CheckovResponseRaw {
 
 const skipChecks = ['CKV_AWS_52'];
 
-export const runCheckovScan = (fileName: string): Promise<CheckovResponse> => {
+export const runCheckovScan = (logger: Logger, fileName: string): Promise<CheckovResponse> => {
     return new Promise((resolve, reject) => {
-        console.log('Running checkov on', fileName);
+        logger.info('Running checkov on', { fileName });
         const ckv = spawn('checkov', ['--skip-check', skipChecks.join(','), '-f', fileName, '-o', 'json']);
         let stdout = '';
 	
@@ -43,18 +44,18 @@ export const runCheckovScan = (fileName: string): Promise<CheckovResponse> => {
         });
 			
         ckv.stderr.on("data", data => {
-            console.warn(`Checkov stderr: ${data}`);
+            logger.warn(`Checkov stderr: ${data}`);
         });
 			
         ckv.on('error', (error) => {
-            console.error('Error while running Checkov', error);
+            logger.error('Error while running Checkov', { error });
         });
 			
         ckv.on("close", code => {
-            console.debug(`Checkov scan process exited with code ${code}`);
+            logger.debug(`Checkov scan process exited with code ${code}`);
             if (code !== 1) return reject(`Checkov exited with code ${code}`); // Check about checkov
 	
-            console.debug(`Checkov task output: ${stdout}`);
+            logger.debug(`Checkov task output: ${stdout}`);
             const output: CheckovResponseRaw = JSON.parse(stdout);
 	
             resolve(parseCheckovResponse(output));
