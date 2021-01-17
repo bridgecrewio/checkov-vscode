@@ -21,6 +21,33 @@ export function activate(context: vscode.ExtensionContext): void {
     statusBarItem.text = 'Checkov';
     statusBarItem.show();
 
+    const showContactUsDetails = (): void => {
+        const contactUsMessage = `
+Any troubles? We can help you figure out what happened.
+Open an issue on https://github.com/bridgecrewio/checkov-vscode
+Or contact us directly on https://slack.bridgecrew.io .
+Adding the log file will be very useful,
+You can find it here:
+${context.logUri.fsPath}`;
+        
+        vscode.window.showInformationMessage(contactUsMessage, 'Open log', 'Open issue', 'Slack us')
+            .then(choice => {
+                if (!choice) return;
+                
+                if (choice === 'Open log') {
+                    console.log(context.logUri.fsPath);
+                    vscode.window.showTextDocument(context.logUri);
+                    return;
+                }
+
+                const uri = 
+                    choice === 'Open issue' ? vscode.Uri.parse('https://github.com/bridgecrewio/checkov-vscode') 
+                        : vscode.Uri.parse('https://slack.bridgecrew.io');
+                
+                vscode.env.openExternal(uri);
+            });
+    };
+
     // Set diagnostics collection
     const diagnostics = vscode.languages.createDiagnosticCollection('checkov-alerts');
     context.subscriptions.push(diagnostics);
@@ -30,6 +57,7 @@ export function activate(context: vscode.ExtensionContext): void {
         const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('checkov');
         const token = configuration.get('token');
         if(!token) {
+            console.error('Bridgecrew API token was not found. Please add it to the configuration.');
             vscode.window.showErrorMessage('Bridgecrew API token was not found. Please add it to the configuration.');
             statusBarItem.text = '$(gear) Checkov';
         }
@@ -44,8 +72,9 @@ export function activate(context: vscode.ExtensionContext): void {
             console.log(`finished installing checkov on ${environment.checkovPython} python environment.`);
             statusBarItem.text = 'Checkov';
         } catch(error) {
-            console.error('Error occurred while trying to install Checkov', error);
             statusBarItem.text = '$(error) Checkov';
+            console.error('Error occurred while trying to install Checkov', error);
+            showContactUsDetails();
         }
     });
     vscode.commands.executeCommand(INSTALL_OR_UPDATE_CHECKOV_COMMAND);
@@ -98,8 +127,8 @@ export function activate(context: vscode.ExtensionContext): void {
             statusBarItem.text = `$(${checkovResponse.results.failedChecks.length > 0 ? 'alert' : 'pass'}) Checkov`;
         } catch (error) {
             statusBarItem.text = '$(error) Checkov';
-            console.error('Error occurred.', error);
-            console.log('You can find the log file here', context.logUri.fsPath);
+            console.error('Error occurred while running a checkov scan', error);
+            showContactUsDetails();
         }
     }
 }
