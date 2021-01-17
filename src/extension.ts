@@ -136,7 +136,7 @@ ${context.logUri.fsPath}`;
             saveCheckovResult(checkovResponse.results.failedChecks);
             applyDiagnostics(editor.document, diagnostics, checkovResponse.results.failedChecks);
 
-            statusBarItem.text = `$(${checkovResponse.results.failedChecks.length > 0 ? 'alert' : 'pass'}) Checkov`;
+            statusBarItem.text = `$(${checkovResponse.results.failedChecks.length > 0 ? 'error' : 'pass'}) Checkov`;
         } catch (error) {
             statusBarItem.text = '$(error) Checkov';
             logger.error('Error occurred while running a checkov scan', { error });
