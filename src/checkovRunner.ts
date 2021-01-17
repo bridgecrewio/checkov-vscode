@@ -30,10 +30,12 @@ interface CheckovResponseRaw {
     };
 }
 
+const skipChecks = ['CKV_AWS_52'];
+
 export const runCheckovScan = (fileName: string): Promise<CheckovResponse> => {
     return new Promise((resolve, reject) => {
         console.log('Running checkov on', fileName);
-        const ckv = spawn('checkov', ['-f', fileName, '-o', 'json']);
+        const ckv = spawn('checkov', ['--skip-check', skipChecks.join(','), '-f', fileName, '-o', 'json']);
         let stdout = '';
 	
         ckv.stdout.on("data", data => {
