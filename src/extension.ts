@@ -24,6 +24,8 @@ export function activate(context: vscode.ExtensionContext): void {
     statusBarItem.text = 'Checkov';
     statusBarItem.show();
 
+    let checkovInstalled = false;
+
     const showContactUsDetails = (): void => {
         const contactUsMessage = `
 Any troubles? We can help you figure out what happened.
@@ -60,7 +62,8 @@ ${context.logUri.fsPath}`;
         const token = configuration.get('token');
         if(!token) {
             logger.error('Bridgecrew API token was not found. Please add it to the configuration.');
-            vscode.window.showErrorMessage('Bridgecrew API token was not found. Please add it to the configuration.');
+            vscode.window.showErrorMessage('Bridgecrew API token was not found. Please add it to the configuration.', 'Open configuration')
+                .then(choice => choice === 'Open configuration' && vscode.commands.executeCommand(OPEN_CONFIGURATION_COMMAND));
             statusBarItem.text = '$(gear) Checkov';
         }
         return !!token;
@@ -73,6 +76,7 @@ ${context.logUri.fsPath}`;
             const environment: CheckovInstallation = await installOrUpdateCheckov(logger);
             logger.info(`finished installing checkov on ${environment.checkovPython} python environment.`);
             statusBarItem.text = 'Checkov';
+            checkovInstalled = true;
         } catch(error) {
             statusBarItem.text = '$(error) Checkov';
             logger.error('Error occurred while trying to install Checkov', { error });
@@ -86,6 +90,12 @@ ${context.logUri.fsPath}`;
     );
 
     vscode.commands.registerCommand(RUN_FILE_SCAN_COMMAND, () => {
+        if (!checkovInstalled) {
+            logger.warn('Tried to scan before checkov finished installing or updating. Please wait a few seconds and try again.');
+            vscode.window.showWarningMessage('Still installing/updating Checkov, please wait a few seconds and try again.', 'Got it');
+            return;
+        }
+
         if (!checkTokenIsSet()) return;
 
         if (vscode.window.activeTextEditor) {

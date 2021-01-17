@@ -53,7 +53,7 @@ export const runCheckovScan = (logger: Logger, fileName: string): Promise<Checko
 			
         ckv.on("close", code => {
             logger.debug(`Checkov scan process exited with code ${code}`);
-            if (code !== 1) return reject(`Checkov exited with code ${code}`); // Check about checkov
+            if (code > 1) return reject(`Checkov exited with code ${code}`);
 	
             logger.debug(`Checkov task output: ${stdout}`);
             const output: CheckovResponseRaw = JSON.parse(stdout);
