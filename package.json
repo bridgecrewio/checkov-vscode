@@ -1,6 +1,6 @@
 {
 	"name": "checkov",
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"displayName": "Checkov",
 	"publisher": "Bridgecrew",
 	"description": "Scans infrastructure as code files for security misconfigurations. https://www.bridgecrew.io",
@@ -14,7 +14,7 @@
 		"url": "https://github.com/bridgecrewio/checkov-vscode/issues"
 	},
 	"engines": {
-		"vscode": "^1.51.0"
+		"vscode": "^1.48.2"
 	},
 	"categories": [
 		"Linters",
