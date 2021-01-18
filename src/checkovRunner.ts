@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { spawn } from "child_process";
-import { Logger } from "winston";
+import { spawn } from 'child_process';
+import { Logger } from 'winston';
 
 export interface FailedCheckovCheck {
     checkId: string;
@@ -40,11 +40,11 @@ export const runCheckovScan = (logger: Logger, fileName: string, token: string, 
         const ckv = spawn('checkov', ['-s', '--skip-check', skipChecks.join(','), '--bc-api-key', token, '--repo-id', 'vscode/extension', '-f', fileName, '-o', 'json']);
         let stdout = '';
 	
-        ckv.stdout.on("data", data => {
+        ckv.stdout.on('data', data => {
             stdout += data;
         });
 			
-        ckv.stderr.on("data", data => {
+        ckv.stderr.on('data', data => {
             logger.warn(`Checkov stderr: ${data}`);
         });
 			
@@ -52,7 +52,7 @@ export const runCheckovScan = (logger: Logger, fileName: string, token: string, 
             logger.error('Error while running Checkov', { error });
         });
 			
-        ckv.on("close", code => {
+        ckv.on('close', code => {
             if (cancelToken.isCancellationRequested) return reject('Cancel invoked');
             logger.debug(`Checkov scan process exited with code ${code}`);
             if (code !== 0) return reject(`Checkov exited with code ${code}`);

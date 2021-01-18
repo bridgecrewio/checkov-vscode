@@ -64,7 +64,7 @@ export const installOrUpdateCheckov = async (logger: Logger): Promise<CheckovIns
         logger.info('Pipenv is installed, version', { pipenvVersion });
         await updateCheckovWithPipenv(logger);
     } else {
-        logger.info(`Pipenv is not installed, using system's python.`);
+        logger.info('Pipenv is not installed, using system\'s python.');
         await updateCheckovWithSystemPython(logger);
     }
     logger.info('Checkov updated successfully using', { checkovPython });
