@@ -17,7 +17,7 @@ const getPipenvVersion = async (): Promise<string | null> => {
 const updateCheckovWithBrew = async (logger: Logger): Promise<void> => {
     try {
         logger.info('Trying to install Checkov using Brew.');
-        await asyncExec('brew install checkov');
+        await asyncExec('brew upgrade checkov || brew upgrade checkov');
     } catch (error) {
         logger.error('Failed to install or update Checkov using Brew. Error:', { error });
         throw new Error('Failed to install or update Checkov using Brew');

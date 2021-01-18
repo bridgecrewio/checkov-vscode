@@ -1,3 +1,4 @@
+import * as vscode from 'vscode';
 import { spawn } from "child_process";
 import { Logger } from "winston";
 
@@ -33,10 +34,10 @@ interface CheckovResponseRaw {
 
 const skipChecks = ['CKV_AWS_52'];
 
-export const runCheckovScan = (logger: Logger, fileName: string): Promise<CheckovResponse> => {
+export const runCheckovScan = (logger: Logger, fileName: string, token: string, cancelToken: vscode.CancellationToken): Promise<CheckovResponse> => {
     return new Promise((resolve, reject) => {
         logger.info('Running checkov on', { fileName });
-        const ckv = spawn('checkov', ['--skip-check', skipChecks.join(','), '-f', fileName, '-o', 'json']);
+        const ckv = spawn('checkov', ['-s', '--skip-check', skipChecks.join(','), '-f', fileName, '-o', 'json']);
         let stdout = '';
 	
         ckv.stdout.on("data", data => {
@@ -52,13 +53,19 @@ export const runCheckovScan = (logger: Logger, fileName: string): Promise<Checko
         });
 			
         ckv.on("close", code => {
+            if (cancelToken.isCancellationRequested) return reject('Cancel invoked');
             logger.debug(`Checkov scan process exited with code ${code}`);
-            if (code > 1) return reject(`Checkov exited with code ${code}`);
-	
+            if (code !== 0) return reject(`Checkov exited with code ${code}`);
+            
             logger.debug(`Checkov task output: ${stdout}`);
             const output: CheckovResponseRaw = JSON.parse(stdout);
 	
             resolve(parseCheckovResponse(output));
+        });
+
+        cancelToken.onCancellationRequested((cancelEvent) => {
+            ckv.kill('SIGABRT');
+            logger.info('Cancellation token invoked, aborting checkov run', { cancelEvent });
         });
     });
 };
