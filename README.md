@@ -1,89 +1,78 @@
 [![checkov](https://raw.githubusercontent.com/bridgecrewio/checkov/master/docs/web/images/checkov_by_bridgecrew.png)](#)
- **for VS Code**
-
 [![Maintained by Bridgecrew.io](https://img.shields.io/badge/maintained%20by-bridgecrew.io-blueviolet)](https://bridgecrew.io/?utm_source=github&utm_medium=organic_oss&utm_campaign=checkov)
-[![Installs-count](https://marketplace.visualstudio.com/items?itemName=bridgecrew.checkov)(https://vsmarketplacebadge.apphb.com/installs-short/bridgecrew.checkov.svg)
+[![build status](https://github.com/bridgecrewio/vscode-checkov/workflows/build/badge.svg)](https://github.com/bridgecrewio/checkov-vscode/actions?query=workflow%3Abuild)
+[![security status](https://github.com/bridgecrewio/vscode-checkov/workflows/security/badge.svg)](https://github.com/bridgecrewio/vscode-checkov/actions?query=event%3Apush+branch%3Amaster+workflow%3Asecurity) 
+[![code_coverage](https://raw.githubusercontent.com/bridgecrewio/vscode-checkov/master/coverage.svg?sanitize=true)](https://github.com/bridgecrewio/vscode-checkov/actions?query=workflow%3Acoverage)
+[![PyPI](https://img.shields.io/pypi/v/checkov)](https://pypi.org/project/checkov/)
+[![Python Version](https://img.shields.io/github/pipenv/locked/python-version/bridgecrewio/checkov)](#)
+[![Terraform Version](https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg)](#)
+[![Downloads](https://pepy.tech/badge/checkov)](https://pepy.tech/project/checkov)
+[![slack-community](https://slack.bridgecrew.io/badge.svg)](https://slack.bridgecrew.io/?utm_source=github&utm_medium=organic_oss&utm_campaign=checkov)
+[![Installs-count](https://vsmarketplacebadge.apphb.com/installs-short/bridgecrew.checkov.svg)]
+
+
+# Checkov Extension for Visual Studio Code
 
 
 
---GIF---
+[Checkov](https://github.com/bridgecrewio/checkov) is a static code analysis tool for infrastrucutre-as-code. 
 
+The Checkov Extension for VSCODE enables developers to get real-time scan results, as well as inline fix suggestions as they develop cloud infratructure.
 
+Features include:
 
-[Checkov](https://github.com/bridgecrewio/checkov) is a static code analysis tool for infrastructure-as-code.
-
-It scans cloud infrastructure provisioned using Terraform, Cloudformation, Kubernetes, Serverless or ARM Templates and detects security and compliance misconfigurations.
-
-Checkov's plugin for VS Code scans you infrastructutre-as-code files as you code, so you can easily prevent misconfigurations.
-
-Checkov also powers Bridgecrew, the developer-first platform that codifies and streamlines cloud security throughout the development lifecycle. Bridgecrew identifies, fixes, and prevents misconfigurations in cloud resources and infrastructure-as-code files.
-
-Integrating you checkov scanner with Bridgecrew's api enables you to easily fix errors or suppress them, and to include your [custom policies](https://docs.bridgecrew.io/docs/building-custom-policies) in the scan.
-
-
-## Features
-* Over 400 built-in policies cover security and compliance best practices for AWS, Azure and Google Cloud.
-* Scans Terraform, Terraform Plan, CloudFormation, Kubernetes, Serverless framework and ARM template files.
+* 500 built-in policies covering security and compliance best practices for AWS, Azure and Google Cloud.
+* Terraform, Terraform Plan, CloudFormation, Kubernetes, Helm, Serverless and ARM template scanning.
 * Detects AWS credentials in EC2 Userdata, Lambda environment variables and Terraform providers.
-* Evaluates Terraform Provider settings to regulate the creation, management, and updates of IaaS, PaaS or SaaS managed through Terraform.
-* Offers quick fixes for errors, that immediately fix the code
+* In Terraform, checks support evaluation of arguments expressed in variables and remote modules to their actual values.
+* Supports inline suppression via comments.
+* Links to policy descriptions, rationales as well as step by step instructions for fixing known misconfigurations.
+*  Fix suggestions for commonly misconfigured Terraform and CloudFormation attributes.
 
-## Installation
-* Make sure you have checkov installed and the `checkov` command available globally, or install it by running:
+## Getting started
 
-`brew install checkov` / `pip3 install checkov`
+### Install
 
-* Look for [checkov extension](link) in your VS Code marketplace and click `install`
+Open the Checkov Extension for Visual Studio Code in the Visual Studio Markeplace.
 
-* Get your Bridgecrew API token from https://www.bridgecrew.cloud/integrations/api-token or read about it [here](https://docs.bridgecrew.io/docs/get-api-token)
+### Dependencies
 
-* Open a file you wish to scan with checkov in VS Code, and it is saved.
+The Checkov extension will invoke the latest version of ```Checkov```.
 
-* Open the command pallette (⇧⌘P) and run the command `Checkov Scan`
+### Configuration
 
-* Results would appear as highlights in your editor
+* Sign up to a Bridgecrew Community account [here](http://bridgecrew.cloud/). If you already have an account, sign in and go to the next step.
 
-* For every error, you can fix it (if there is an avaiable fix), learn about it, or suppress it if you wish not to see it again.
+* From [Integrations](https://www.bridgecrew.cloud/integrations/), select **API Token** and copy the API key.
+* In Visual Studio Code, enter your API Token in the Checkov Extension settings page.
 
+### Usage
 
+* Open a file you wish to scan with checkov in VSCode.
+* Open the command pallette (⇧⌘P) and run the command `Checkov Scan`.
+* Scan results should now appear in your editor.
+* Click a scan to see its details. Details will include the violating policy and a link to step-by-step fix guideliens. 
+* In most cases, the Details will include a fix option. This will either add, remove or replace an unwanted configuration, based on the Checkov fix dictionaries.
+* You can skip checks by adding an inline skip annotaiton ```checkov:skip=<check_id>:<suppression_comment>```. For more details see the [docs](https://github.com/bridgecrewio/checkov/blob/master/docs/2.Concepts/Suppressions.md).
+* The extension will continue to scan file modifications and highlight errors in your editor upon every material resource modification.
 
+## Contributing
 
+Contribution is welcomed!
 
-## Internal:
-Pre-requesite: Ensure you have the `checkov` command available globally (e.g., `pip3 install checkov` using the system python3 installation). The current method of execution cannot pick up shell aliases, functions, etc.
+Start by reviewing the [contribution guidelines](https://github.com/bridgecrewio/checkov/blob/master/CONTRIBUTING.md). After that, take a look at a [good first issue](https://github.com/bridgecrewio/checkov/issues?q=is%3Aissue+is%3Aopen+label%3A"good+first+issue").
 
-However, you can modify the command to run from your local repo by setting `PYTHONPATH` in the command options, and invoking your local checkov virtualenv/pipenv. This is useful if you like to have the `checkov` command in your shell always run your local repo clone.
+Looking to contribute new checks? Learn how to write a new check (AKA policy) [here](https://github.com/bridgecrewio/checkov/blob/master/docs/5.Contribution/New-Check.md).
 
-Example:
-```
-let python = '/path/to/checkov/venv/python'
-const ckv = spawn(python, ['-m', 'checkov.main', '-f', editor.document.fileName, '-o', 'json'], {env: {'PYTHONPATH': '/path/to/checkovroot'}});
-```
+## Disclaimer
 
-1. Clone this repo and open it in VSCode.
-2. Press F5 - this opens a VSCode instance with the extension loaded
-3. Open a file that checkov can scan
-4. Open the command pallette (⇧⌘P) and run the command `Checkov Scan`
+`checkov` does not save, publish or share with anyone any identifiable customer information.
+No identifiable customer information is used to query Bridgecrew's publicly accessible guides. `checkov` uses Bridgecrew's API to enrich the results with links to remediation guides. 
 
-You should see results highlighted in the editor.
+## Support
 
+[Bridgecrew](https://bridgecrew.io/?utm_source=github&utm_medium=organic_oss&utm_campaign=checkov) builds and maintains Checkov to make policy-as-code simple and accessible.
 
+Start with our [Documentation](https://bridgecrewio.github.io/checkov/) for quick tutorials and examples.
 
-
-
-
-## To-do
-
-There are many improvements to be made around overall usability (e.g., checking / installing checkov / bridgecrew), docs, etc.
-
-A few immediate to-do items include:
-
-1. Keep the editor decorations active if the active editor is changed (they go away if you switch to a new file and then switch back)
-2. Figure out a way to scan more dynamically without actually running a scan every time the user edits the file (e.g., when the file is saved, but it would be nice to do it more real-time)
-
-## Docs for VSCode extensions
-
-Hello world: https://code.visualstudio.com/api/get-started/your-first-extension  
-Sample decorator (shows how to update decorations on every file change): https://github.com/microsoft/vscode-extension-samples/tree/master decorator-sample  
-VSCode API: https://code.visualstudio.com/api/references/vscode-api
-
+If you need direct support you can contact us at [info@bridgecrew.io](mailto:info@bridgecrew.io).
