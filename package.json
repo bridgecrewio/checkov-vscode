@@ -4,7 +4,7 @@
 	"displayName": "Checkov",
 	"publisher": "Bridgecrew",
 	"description": "Scans infrastructure as code files for security misconfigurations. https://www.bridgecrew.io",
-	"license": "LICENSE",
+	"license": "Apache-2.0",
 	"icon": "docs/icon.png",
 	"repository": {
 		"type": "git",
