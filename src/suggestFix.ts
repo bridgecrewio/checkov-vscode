@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 import { FailedCheckovCheck } from './checkovRunner';
+import { OPEN_EXTERNAL_COMMAND, REMOVE_DIAGNOSTICS_COMMAND } from './commands';
 import { DiagnosticReferenceCode } from './diagnostics';
-import { CHECKOV_MAP, OPEN_EXTERNAL_COMMAND, REMOVE_DIAGNOSTICS_COMMAND } from './extension';
+import { CHECKOV_MAP } from './extension';
 import { createDiagnosticKey } from './utils';
 
 const provideFixCodeActions = (workspaceState: vscode.Memento) => (document: vscode.TextDocument, range: vscode.Range | vscode.Selection, context: vscode.CodeActionContext, token: vscode.CancellationToken): vscode.CodeAction[] => {

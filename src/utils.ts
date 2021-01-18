@@ -3,6 +3,7 @@ import { exec } from 'child_process';
 import { FailedCheckovCheck } from './checkovRunner';
 import { DiagnosticReferenceCode } from './diagnostics';
 import winston = require('winston');
+import { CHECKOV_MAP } from './extension';
 
 type ExecOutput = [stdout: string, stderr: string];
 export const asyncExec = async (commandToExecute: string) : Promise<ExecOutput> => {
@@ -13,6 +14,14 @@ export const asyncExec = async (commandToExecute: string) : Promise<ExecOutput> 
         });
     });
 }; 
+
+export const saveCheckovResult = (state: vscode.Memento, checkovFails: FailedCheckovCheck[]): void => {
+    const checkovMap = checkovFails.reduce((prev, current) => ({
+        ...prev,
+        [createCheckovKey(current)]: current
+    }), []);
+    state.update(CHECKOV_MAP, checkovMap);
+};
 
 export const createDiagnosticKey = (diagnostic: vscode.Diagnostic): string => 
     `${(diagnostic.code as DiagnosticReferenceCode).value}-${diagnostic.range.start.line + 1}`;
