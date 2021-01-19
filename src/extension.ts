@@ -1,52 +1,117 @@
 import * as vscode from 'vscode';
-import { CheckovInstalltion, installOrUpdateCheckov } from './checkovInstaller';
-import { runCheckovScan, FailedCheckovCheck } from './checkovRunner';
+import { TextEncoder } from 'util';
+import debounce from 'lodash/debounce';
+import { Logger } from 'winston';
+import { CheckovInstallation, installOrUpdateCheckov } from './checkovInstaller';
+import { runCheckovScan } from './checkovRunner';
 import { applyDiagnostics } from './diagnostics';
 import { fixCodeActionProvider, providedCodeActionKinds } from './suggestFix';
-import { createCheckovKey } from './utils';
+import { getLogger, saveCheckovResult } from './utils';
+import { initializeStatusBarItem, setErrorStatusBarItem, setPassedStatusBarItem, setReadyStatusBarItem, setSyncingStatusBarItem, showContactUsDetails } from './userInterface';
+import { assureTokenSet } from './token';
+import { INSTALL_OR_UPDATE_CHECKOV_COMMAND, OPEN_CONFIGURATION_COMMAND, OPEN_EXTERNAL_COMMAND, REMOVE_DIAGNOSTICS_COMMAND, RUN_FILE_SCAN_COMMAND } from './commands';
 
-export const OPEN_EXTERNAL_COMMAND = 'checkov.open-external';
-export const RUN_FILE_SCAN_COMMAND = 'checkov.scan-file';
-export const REMOVE_DIAGNOSTICS_COMMAND = 'checkov.remove-diagnostics';
 export const CHECKOV_MAP = 'checkovMap';
-
-const INSTALL_OR_UPDATE_COMMAND = 'checkov.install-or-update-checkov';
+const logFileName = 'checkov.log';
+const tempScanFile = 'temp.tf';
 
 // this method is called when extension is activated
 export function activate(context: vscode.ExtensionContext): void {
-    // install or update the checkov version 
-    vscode.commands.registerCommand(INSTALL_OR_UPDATE_COMMAND, async () => {
-        try {
-            const environment: CheckovInstalltion = await installOrUpdateCheckov();
-            console.log(`finished installing checkov on ${environment.checkovPython} python environment.`);
-        } catch(error) {
-            console.error('Error occurred while trying to install Checkov', error);
-        }
-    });
-    vscode.commands.executeCommand(INSTALL_OR_UPDATE_COMMAND);
+    const logger: Logger = getLogger(context.logUri.fsPath, logFileName);
+    
+    initializeStatusBarItem(OPEN_CONFIGURATION_COMMAND);    
+    let extensionReady = false;
+    let checkovRunCancelTokenSource = new vscode.CancellationTokenSource();
 
+    const resetCancelTokenSource = () => {
+        checkovRunCancelTokenSource.cancel();
+        checkovRunCancelTokenSource.dispose();
+        checkovRunCancelTokenSource = new vscode.CancellationTokenSource();
+    };
+
+    // Set diagnostics collection
+    const diagnostics = vscode.languages.createDiagnosticCollection('checkov-alerts');
+    context.subscriptions.push(diagnostics);
+
+    // Set commands
     context.subscriptions.push(
+        vscode.commands.registerCommand(INSTALL_OR_UPDATE_CHECKOV_COMMAND, async () => {
+            try {
+                extensionReady = false;
+                setSyncingStatusBarItem();
+                const environment: CheckovInstallation = await installOrUpdateCheckov(logger);
+                logger.info(`finished installing checkov with ${environment.checkovPython}.`);
+                setReadyStatusBarItem();
+                extensionReady = true;
+            } catch(error) {
+                setErrorStatusBarItem();
+                logger.error('Error occurred while trying to install Checkov', { error });
+                showContactUsDetails(context.logUri, logFileName);
+            }
+        }),
+        vscode.commands.registerCommand(RUN_FILE_SCAN_COMMAND, async (fileUri?: vscode.Uri): Promise<void> => {
+            if (!extensionReady) {
+                logger.warn('Tried to scan before checkov finished installing or updating. Please wait a few seconds and try again.');
+                vscode.window.showWarningMessage('Still installing/updating Checkov, please wait a few seconds and try again.', 'Got it');
+                return;
+            }
+            resetCancelTokenSource();
+            const token = assureTokenSet(logger, OPEN_CONFIGURATION_COMMAND);
+            vscode.commands.executeCommand(REMOVE_DIAGNOSTICS_COMMAND);
+            if (!!token && vscode.window.activeTextEditor) {
+                await runScan(vscode.window.activeTextEditor, token, checkovRunCancelTokenSource.token, fileUri);
+            }
+        }),
+        vscode.commands.registerCommand(REMOVE_DIAGNOSTICS_COMMAND, () => {
+            if (vscode.window.activeTextEditor) {
+                setReadyStatusBarItem();
+                applyDiagnostics(vscode.window.activeTextEditor.document, diagnostics, []);
+            }
+        }),
+        vscode.commands.registerCommand(OPEN_CONFIGURATION_COMMAND, () => {
+            vscode.commands.executeCommand('workbench.action.openSettings', '@ext:Bridgecrew.checkov');
+        }),
         vscode.commands.registerCommand(OPEN_EXTERNAL_COMMAND, (uri: vscode.Uri) => vscode.env.openExternal(uri))
     );
 
-    vscode.commands.registerCommand(RUN_FILE_SCAN_COMMAND, () => {
+    vscode.commands.executeCommand(INSTALL_OR_UPDATE_CHECKOV_COMMAND);
+
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeTextDocument(changeEvent => {
+            if (!extensionReady) return;
+            if (vscode.window.activeTextEditor && changeEvent.document.uri.toString() !== vscode.window.activeTextEditor.document.uri.toString()) 
+                return;
+            vscode.commands.executeCommand(REMOVE_DIAGNOSTICS_COMMAND);
         
-        if (vscode.window.activeTextEditor) {
-            runScan(vscode.window.activeTextEditor);
-        }
-        else {
-            console.warn('No active editor.');
-        }
-    });
+            // Run scan on enter (new line)
+            if (!changeEvent.contentChanges.some(change => change.text.includes('\n'))) return;
 
-    vscode.commands.registerCommand(REMOVE_DIAGNOSTICS_COMMAND, () => {
-        if (vscode.window.activeTextEditor) 
-            applyDiagnostics(vscode.window.activeTextEditor.document, diagnostics, []);
-    });
+            const tempFileUri: vscode.Uri = vscode.Uri.joinPath(context.globalStorageUri, tempScanFile);
+            const text: string = changeEvent.document.getText();
+            const stringBuffer: Uint8Array = new TextEncoder().encode(text);
 
-    // Set diagnostics
-    const diagnostics = vscode.languages.createDiagnosticCollection('checkov-alerts');
-    context.subscriptions.push(diagnostics);
+            // Save changes in temp file
+            vscode.workspace.fs.writeFile(tempFileUri, stringBuffer)
+                .then(() => {
+                    logger.debug('Saved temporary file, now scanning', { tempFile: tempFileUri.fsPath });
+                    vscode.commands.executeCommand(RUN_FILE_SCAN_COMMAND, tempFileUri);
+                }, error => {
+                    logger.error('Error occurred trying to save temp file', { error });
+                });
+        }),
+        vscode.workspace.onDidSaveTextDocument(saveEvent => {
+            if (!extensionReady) return;
+            if (vscode.window.activeTextEditor && saveEvent.uri.toString() !== vscode.window.activeTextEditor.document.uri.toString()) {
+                setReadyStatusBarItem();
+                return;
+            }
+            vscode.commands.executeCommand(RUN_FILE_SCAN_COMMAND);
+        }),
+        vscode.window.onDidChangeActiveTextEditor(changeViewEvent => {
+            if (!extensionReady) return;
+            vscode.commands.executeCommand(RUN_FILE_SCAN_COMMAND);
+        })
+    );
 
     // set code action provider
     context.subscriptions.push(
@@ -54,22 +119,22 @@ export function activate(context: vscode.ExtensionContext): void {
             fixCodeActionProvider(context.workspaceState), { providedCodeActionKinds: providedCodeActionKinds })
     );
     
-    const saveCheckovResult = (checkovFails: FailedCheckovCheck[]) => {
-        const checkovMap = checkovFails.reduce((prev, current) => ({
-            ...prev,
-            [createCheckovKey(current)]: current
-        }), []);
-        context.workspaceState.update(CHECKOV_MAP, checkovMap);
-    };    
-
-    async function runScan(editor: vscode.TextEditor) {
-        console.log('Starting to scan.');
+    const runScan = debounce(async (editor: vscode.TextEditor,  token: string, cancelToken: vscode.CancellationToken, fileUri?: vscode.Uri): Promise<void> => {
+        logger.info('Starting to scan.');
         try {
-            const checkovResponse = await runCheckovScan(editor.document.fileName);
-            saveCheckovResult(checkovResponse.results.failedChecks);
+            setSyncingStatusBarItem();
+            const checkovResponse = await runCheckovScan(logger, fileUri ? fileUri.fsPath : editor.document.fileName, token, cancelToken);
+            saveCheckovResult(context.workspaceState, checkovResponse.results.failedChecks);
             applyDiagnostics(editor.document, diagnostics, checkovResponse.results.failedChecks);
+            checkovResponse.results.failedChecks.length > 0 ? setErrorStatusBarItem() : setPassedStatusBarItem();
         } catch (error) {
-            console.error('Error occurred.', error);
+            if (cancelToken.isCancellationRequested) {
+                return;
+            }
+            
+            setErrorStatusBarItem();
+            logger.error('Error occurred while running a checkov scan', { error });
+            showContactUsDetails(context.logUri, logFileName);
         }
-    }
+    }, 300, {});
 }

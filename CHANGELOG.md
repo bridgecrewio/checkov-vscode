@@ -9,4 +9,6 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Initial release.
 - Run `Checkov` on a file.
 - Display diagnostics errors with details of the error and a link to Bridgecrew platform.
-- Install and update `Checkov`. 
+- Install and update `Checkov` with - Brew(mac) or python pip3. 
+- Use Bridgecrew token from configuration and add it to Checkov run.
+- Save logs to a file, and display message on errors.  

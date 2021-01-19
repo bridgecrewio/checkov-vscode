@@ -20,7 +20,7 @@ export const applyDiagnostics = (document: vscode.TextDocument, diagnostics: vsc
         foundDiagnostics.push({
             message: failure.checkName, 
             range: new vscode.Range(startPos, line.range.end),
-            severity: vscode.DiagnosticSeverity.Warning,
+            severity: vscode.DiagnosticSeverity.Error,
             source: 'Checkov ',
             code
         });
