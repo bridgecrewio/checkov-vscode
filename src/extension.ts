@@ -7,7 +7,7 @@ import { applyDiagnostics } from './diagnostics';
 import { fixCodeActionProvider, providedCodeActionKinds } from './suggestFix';
 import { getLogger, saveCheckovResult } from './utils';
 import { initializeStatusBarItem, setErrorStatusBarItem, setPassedStatusBarItem, setReadyStatusBarItem, setSyncingStatusBarItem, showContactUsDetails } from './userInterface';
-import { checkTokenIsSet } from './token';
+import { assureTokenSet } from './token';
 import { INSTALL_OR_UPDATE_CHECKOV_COMMAND, OPEN_CONFIGURATION_COMMAND, OPEN_EXTERNAL_COMMAND, REMOVE_DIAGNOSTICS_COMMAND, RUN_FILE_SCAN_COMMAND } from './commands';
 
 export const CHECKOV_MAP = 'checkovMap';
@@ -55,7 +55,7 @@ export function activate(context: vscode.ExtensionContext): void {
                 return;
             }
             resetCancelTokenSource();
-            const token = checkTokenIsSet(logger, OPEN_CONFIGURATION_COMMAND);
+            const token = assureTokenSet(logger, OPEN_CONFIGURATION_COMMAND);
             vscode.commands.executeCommand(REMOVE_DIAGNOSTICS_COMMAND);
             if (!!token && vscode.window.activeTextEditor) {
                 await runScan(vscode.window.activeTextEditor, token, checkovRunCancelTokenSource.token, fileUri);
