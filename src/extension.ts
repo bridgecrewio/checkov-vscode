@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { TextEncoder } from 'util';
+import debounce from 'lodash/debounce';
 import { Logger } from 'winston';
 import { CheckovInstallation, installOrUpdateCheckov } from './checkovInstaller';
 import { runCheckovScan } from './checkovRunner';
@@ -118,7 +119,7 @@ export function activate(context: vscode.ExtensionContext): void {
             fixCodeActionProvider(context.workspaceState), { providedCodeActionKinds: providedCodeActionKinds })
     );
     
-    const runScan = async (editor: vscode.TextEditor,  token: string, cancelToken: vscode.CancellationToken, fileUri?: vscode.Uri): Promise<void> => {
+    const runScan = debounce(async (editor: vscode.TextEditor,  token: string, cancelToken: vscode.CancellationToken, fileUri?: vscode.Uri): Promise<void> => {
         logger.info('Starting to scan.');
         try {
             setSyncingStatusBarItem();
@@ -135,5 +136,5 @@ export function activate(context: vscode.ExtensionContext): void {
             logger.error('Error occurred while running a checkov scan', { error });
             showContactUsDetails(context.logUri, logFileName);
         }
-    };
+    }, 300, {});
 }
