@@ -21,7 +21,7 @@ jobs:
           node-version: 12
       - name: Publish to Marketplace
         run: |
-          npm install
+          npm ci
           npm install -g vsce
           vsce package
           vsce publish -p ${{ secrets.VSCODE_MARKETPLACE_TOKEN }}
