@@ -1,0 +1,26 @@
+name: Release to VSCode marketplace
+
+on:
+  create:
+    tags:
+      - v*
+
+jobs:
+  build:
+    name: Publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: master
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Publish to Marketplace
+          npm install
+          npm install -g vsce
+          vsce package
+          vsce publish -p ${{ secrets.VSCODE_MARKETPLACE_TOKEN }}
