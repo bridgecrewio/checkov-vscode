@@ -8,12 +8,6 @@ const isBrewInstalled = async (): Promise<boolean> => {
     return stdout.startsWith('Homebrew');
 };
 
-const getPipenvVersion = async (): Promise<string | null> => {
-    const [stdout] = await asyncExec('pipenv --version');
-    const version = stdout.split(' ')[2].trim();
-    return version;
-};
-
 const updateCheckovWithBrew = async (logger: Logger): Promise<void> => {
     try {
         logger.info('Trying to install Checkov using Brew.');
@@ -24,27 +18,17 @@ const updateCheckovWithBrew = async (logger: Logger): Promise<void> => {
     }
 };
 
-const updateCheckovWithPipenv = async (logger: Logger): Promise<void> => {
-    try {
-        logger.info('Trying to install Checkov using Pipenv.');
-        await asyncExec('pipenv install checkov');
-    } catch (error) {
-        logger.error('Failed to install or update Checkov using Pipenv. Error:', { error });
-        throw new Error('Failed to install or update Checkov using Pipenv');
-    }
-};
-
 const updateCheckovWithSystemPython = async (logger: Logger): Promise<void> => {
     try {
-        logger.info('Trying to install Checkov using system Python.');
+        logger.info('Trying to install Checkov using pip3.');
         await asyncExec('pip3 install -U checkov');
     } catch (error) {
-        logger.error('Failed to install or update Checkov using system Python. Error:', { error });
-        throw new Error('Failed to install or update Checkov using system Python');
+        logger.error('Failed to install or update Checkov using pip3. Error:', { error });
+        throw new Error('Failed to install or update Checkov using pip3');
     }
 };
 
-type CheckovPython = 'pipenv' | 'system' | 'brew';
+type CheckovPython = 'pipenv' | 'pip3' | 'brew';
 export interface CheckovInstallation {
     checkovPython: CheckovPython;
 }
@@ -52,22 +36,14 @@ export interface CheckovInstallation {
 export const installOrUpdateCheckov = async (logger: Logger): Promise<CheckovInstallation> => {
     if (isMac() && await isBrewInstalled()) {
         await updateCheckovWithBrew(logger);
-        logger.info('Checkov updated successfully using brew');
+        logger.info('Checkov installed successfully using brew');
 
         return { checkovPython: 'brew' };
     }
 
-    const pipenvVersion = await getPipenvVersion();
+    logger.info('Pipenv is not installed, using pip3.');
+    await updateCheckovWithSystemPython(logger);
+    logger.info('Checkov installed successfully using pip3.');
 
-    const checkovPython: CheckovPython = pipenvVersion ? 'pipenv' : 'system';
-    if (checkovPython === 'pipenv') {
-        logger.info('Pipenv is installed, version', { pipenvVersion });
-        await updateCheckovWithPipenv(logger);
-    } else {
-        logger.info('Pipenv is not installed, using system\'s python.');
-        await updateCheckovWithSystemPython(logger);
-    }
-    logger.info('Checkov updated successfully using', { checkovPython });
-
-    return { checkovPython };
+    return { checkovPython: 'pip3' };
 };

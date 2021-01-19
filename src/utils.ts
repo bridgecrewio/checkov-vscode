@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import { exec } from 'child_process';
+import winston = require('winston');
 import { FailedCheckovCheck } from './checkovRunner';
 import { DiagnosticReferenceCode } from './diagnostics';
-import winston = require('winston');
 import { CHECKOV_MAP } from './extension';
 
 type ExecOutput = [stdout: string, stderr: string];
@@ -30,8 +30,11 @@ export const createCheckovKey = (checkovFail: FailedCheckovCheck): string => `${
 export const getLogger = (logFileDir: string, logFileName: string): winston.Logger => winston.createLogger({
     level: 'debug',
     format: winston.format.combine(
-        winston.format.simple(),
-        winston.format.timestamp()
+        winston.format.splat(),
+        winston.format.printf(({ level, message, ...rest }) => {
+            const logError = rest.error ? { error: { ...rest.error, message: rest.error.message, stack: rest.error.stack } } : {};
+            return `[${level}]: ${message} ${JSON.stringify({ ...rest, ...logError })}`; 
+        })
     ),
     transports: [
         new winston.transports.File({

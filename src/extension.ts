@@ -40,7 +40,7 @@ export function activate(context: vscode.ExtensionContext): void {
                 extensionReady = false;
                 setSyncingStatusBarItem();
                 const environment: CheckovInstallation = await installOrUpdateCheckov(logger);
-                logger.info(`finished installing checkov on ${environment.checkovPython} python environment.`);
+                logger.info(`finished installing checkov with ${environment.checkovPython}.`);
                 setReadyStatusBarItem();
                 extensionReady = true;
             } catch(error) {
