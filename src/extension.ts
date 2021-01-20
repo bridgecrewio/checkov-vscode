@@ -79,10 +79,11 @@ export function activate(context: vscode.ExtensionContext): void {
     context.subscriptions.push(
         vscode.workspace.onDidChangeTextDocument(changeEvent => {
             if (!extensionReady) return;
-            if (vscode.window.activeTextEditor && changeEvent.document.uri.toString() !== vscode.window.activeTextEditor.document.uri.toString()) 
+            if ((vscode.window.activeTextEditor && 
+                changeEvent.document.uri.toString() !== vscode.window.activeTextEditor.document.uri.toString())
+                || !changeEvent.document.fileName.endsWith('.tf')) 
                 return;
             vscode.commands.executeCommand(REMOVE_DIAGNOSTICS_COMMAND);
-        
             // Run scan on enter (new line)
             if (!changeEvent.contentChanges.some(change => change.text.includes('\n'))) return;
 
