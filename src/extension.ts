@@ -113,9 +113,12 @@ export function activate(context: vscode.ExtensionContext): void {
             vscode.commands.executeCommand(RUN_FILE_SCAN_COMMAND);
         }),
         vscode.window.onDidChangeActiveTextEditor(changeViewEvent => {
-            if (!extensionReady || 
-                (changeViewEvent && !isSupportedFileType(changeViewEvent.document.fileName))) 
+            if (!extensionReady) return;
+            if (changeViewEvent && !isSupportedFileType(changeViewEvent.document.fileName)) {
+                resetCancelTokenSource();
+                setReadyStatusBarItem();
                 return;
+            }
             vscode.commands.executeCommand(RUN_FILE_SCAN_COMMAND);
         })
     );
