@@ -121,7 +121,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
     // set code action provider
     context.subscriptions.push(
-        vscode.languages.registerCodeActionsProvider({ pattern: ' **/*.tf' }, 
+        vscode.languages.registerCodeActionsProvider({ pattern: ' **/*.{tf,yml,yaml,json}' }, 
             fixCodeActionProvider(context.workspaceState), { providedCodeActionKinds: providedCodeActionKinds })
     );
     

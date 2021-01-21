@@ -57,7 +57,12 @@ export const runCheckovScan = (logger: Logger, fileName: string, token: string, 
             logger.debug(`Checkov scan process exited with code ${code}`);
             if (code !== 0) return reject(`Checkov exited with code ${code}`);
             
+            if (stdout.startsWith('[]')) {
+                logger.debug('Got an empty reply from checkov', { reply: stdout, fileName });
+                return resolve({ results: { failedChecks: [] } });
+            }
             const output: CheckovResponseRaw = JSON.parse(stdout);
+
             logger.debug('Checkov task output:', output);
 	
             resolve(parseCheckovResponse(output));
