@@ -4,6 +4,7 @@ import winston = require('winston');
 import { FailedCheckovCheck } from './checkovRunner';
 import { DiagnosticReferenceCode } from './diagnostics';
 import { CHECKOV_MAP } from './extension';
+import { showUnsupportedFileMessage } from './userInterface';
 
 const extensionData = vscode.extensions.getExtension('bridgecrew.checkov');
 export const extensionVersion = extensionData ? extensionData.packageJSON.version : 'unknown';
@@ -16,7 +17,15 @@ export const asyncExec = async (commandToExecute: string) : Promise<ExecOutput> 
             resolve([stdout, stderr]);
         });
     });
-}; 
+};
+
+export const isSupportedFileType = (fileName: string, showMessage = false): boolean => {
+    if (!fileName.endsWith('.tf')) {
+        showMessage && showUnsupportedFileMessage();
+        return false;
+    }
+    return true;
+};
 
 export const saveCheckovResult = (state: vscode.Memento, checkovFails: FailedCheckovCheck[]): void => {
     const checkovMap = checkovFails.reduce((prev, current) => ({
@@ -36,7 +45,8 @@ export const getLogger = (logFileDir: string, logFileName: string): winston.Logg
         winston.format.splat(),
         winston.format.printf(({ level, message, ...rest }) => {
             const logError = rest.error ? { error: { ...rest.error, message: rest.error.message, stack: rest.error.stack } } : {};
-            return `[${level}]: ${message} ${JSON.stringify({ ...rest, ...logError })}`; 
+            const argumentsString = JSON.stringify({ ...rest, ...logError });
+            return `[${level}]: ${message} ${argumentsString !== '{}' ? argumentsString : ''}`; 
         })
     ),
     transports: [
