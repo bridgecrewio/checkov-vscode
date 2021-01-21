@@ -6,7 +6,7 @@ import { CheckovInstallation, installOrUpdateCheckov } from './checkovInstaller'
 import { runCheckovScan } from './checkovRunner';
 import { applyDiagnostics } from './diagnostics';
 import { fixCodeActionProvider, providedCodeActionKinds } from './suggestFix';
-import { getLogger, saveCheckovResult } from './utils';
+import { getLogger, saveCheckovResult, extensionVersion } from './utils';
 import { initializeStatusBarItem, setErrorStatusBarItem, setPassedStatusBarItem, setReadyStatusBarItem, setSyncingStatusBarItem, showContactUsDetails } from './userInterface';
 import { assureTokenSet } from './token';
 import { INSTALL_OR_UPDATE_CHECKOV_COMMAND, OPEN_CONFIGURATION_COMMAND, OPEN_EXTERNAL_COMMAND, REMOVE_DIAGNOSTICS_COMMAND, RUN_FILE_SCAN_COMMAND } from './commands';
@@ -18,7 +18,8 @@ const tempScanFile = 'temp.tf';
 // this method is called when extension is activated
 export function activate(context: vscode.ExtensionContext): void {
     const logger: Logger = getLogger(context.logUri.fsPath, logFileName);
-    
+    logger.info('Starting Checkov Extension.', { extensionVersion, vscodeVersion: vscode.version });
+
     initializeStatusBarItem(OPEN_CONFIGURATION_COMMAND);    
     let extensionReady = false;
     let checkovRunCancelTokenSource = new vscode.CancellationTokenSource();
@@ -123,7 +124,7 @@ export function activate(context: vscode.ExtensionContext): void {
         logger.info('Starting to scan.');
         try {
             setSyncingStatusBarItem();
-            const checkovResponse = await runCheckovScan(logger, fileUri ? fileUri.fsPath : editor.document.fileName, token, cancelToken);
+            const checkovResponse = await runCheckovScan(logger, extensionVersion, fileUri ? fileUri.fsPath : editor.document.fileName, token, cancelToken);
             saveCheckovResult(context.workspaceState, checkovResponse.results.failedChecks);
             applyDiagnostics(editor.document, diagnostics, checkovResponse.results.failedChecks);
             checkovResponse.results.failedChecks.length > 0 ? setErrorStatusBarItem() : setPassedStatusBarItem();
