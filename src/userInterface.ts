@@ -26,6 +26,11 @@ ${logDirectoryPath}`;
         });
 };
 
+export const showUnsupportedFileMessage = (): void => {
+    const message = 'Unsupported file type for Checkov scanning, We support .tf files only.';
+    vscode.window.showWarningMessage(message);
+};
+
 export const statusBarItem: vscode.StatusBarItem = vscode.window.createStatusBarItem();
 
 export const initializeStatusBarItem = (onClickCommand: string): void  => {

@@ -6,7 +6,7 @@ import { CheckovInstallation, installOrUpdateCheckov } from './checkovInstaller'
 import { runCheckovScan } from './checkovRunner';
 import { applyDiagnostics } from './diagnostics';
 import { fixCodeActionProvider, providedCodeActionKinds } from './suggestFix';
-import { getLogger, saveCheckovResult } from './utils';
+import { getLogger, isSupportedFileType, saveCheckovResult } from './utils';
 import { initializeStatusBarItem, setErrorStatusBarItem, setPassedStatusBarItem, setReadyStatusBarItem, setSyncingStatusBarItem, showContactUsDetails } from './userInterface';
 import { assureTokenSet } from './token';
 import { INSTALL_OR_UPDATE_CHECKOV_COMMAND, OPEN_CONFIGURATION_COMMAND, OPEN_EXTERNAL_COMMAND, REMOVE_DIAGNOSTICS_COMMAND, RUN_FILE_SCAN_COMMAND } from './commands';
@@ -58,6 +58,8 @@ export function activate(context: vscode.ExtensionContext): void {
             resetCancelTokenSource();
             const token = assureTokenSet(logger, OPEN_CONFIGURATION_COMMAND);
             vscode.commands.executeCommand(REMOVE_DIAGNOSTICS_COMMAND);
+            if (!fileUri && vscode.window.activeTextEditor && !isSupportedFileType(vscode.window.activeTextEditor.document.fileName, true))
+                return;
             if (!!token && vscode.window.activeTextEditor) {
                 await runScan(vscode.window.activeTextEditor, token, checkovRunCancelTokenSource.token, fileUri);
             }
@@ -79,10 +81,11 @@ export function activate(context: vscode.ExtensionContext): void {
     context.subscriptions.push(
         vscode.workspace.onDidChangeTextDocument(changeEvent => {
             if (!extensionReady) return;
-            if (vscode.window.activeTextEditor && changeEvent.document.uri.toString() !== vscode.window.activeTextEditor.document.uri.toString()) 
+            if ((vscode.window.activeTextEditor && 
+                changeEvent.document.uri.toString() !== vscode.window.activeTextEditor.document.uri.toString())
+                || !isSupportedFileType(changeEvent.document.fileName)) 
                 return;
             vscode.commands.executeCommand(REMOVE_DIAGNOSTICS_COMMAND);
-        
             // Run scan on enter (new line)
             if (!changeEvent.contentChanges.some(change => change.text.includes('\n'))) return;
 
@@ -101,14 +104,17 @@ export function activate(context: vscode.ExtensionContext): void {
         }),
         vscode.workspace.onDidSaveTextDocument(saveEvent => {
             if (!extensionReady) return;
-            if (vscode.window.activeTextEditor && saveEvent.uri.toString() !== vscode.window.activeTextEditor.document.uri.toString()) {
+            if ((vscode.window.activeTextEditor && saveEvent.uri.toString() !== vscode.window.activeTextEditor.document.uri.toString())
+                || !isSupportedFileType(saveEvent.fileName)) {
                 setReadyStatusBarItem();
                 return;
             }
             vscode.commands.executeCommand(RUN_FILE_SCAN_COMMAND);
         }),
         vscode.window.onDidChangeActiveTextEditor(changeViewEvent => {
-            if (!extensionReady) return;
+            if (!extensionReady || 
+                (changeViewEvent && !isSupportedFileType(changeViewEvent.document.fileName))) 
+                return;
             vscode.commands.executeCommand(RUN_FILE_SCAN_COMMAND);
         })
     );
