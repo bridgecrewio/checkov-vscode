@@ -39,7 +39,7 @@ export const runCheckovScan = (logger: Logger, extensionVersion: string, fileNam
         logger.info('Running checkov on', { fileName });
         const ckv = spawn('checkov', ['-s', '--skip-check', skipChecks.join(','), '--bc-api-key', token, '--repo-id', 'vscode/extension', '-f', fileName, '-o', 'json'], 
             {
-                env: { ...process.env, BC_SOURCE_todo_delete: 'vscode', BC_SOURCE_VERSION: extensionVersion }
+                env: { ...process.env, BC_SOURCE: 'vscode', BC_SOURCE_VERSION: extensionVersion }
             });
         let stdout = '';
 	
