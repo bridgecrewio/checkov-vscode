@@ -34,10 +34,13 @@ interface CheckovResponseRaw {
 
 const skipChecks = ['CKV_AWS_52'];
 
-export const runCheckovScan = (logger: Logger, fileName: string, token: string, cancelToken: vscode.CancellationToken): Promise<CheckovResponse> => {
+export const runCheckovScan = (logger: Logger, extensionVersion: string, fileName: string, token: string, cancelToken: vscode.CancellationToken): Promise<CheckovResponse> => {
     return new Promise((resolve, reject) => {
         logger.info('Running checkov on', { fileName });
-        const ckv = spawn('checkov', ['-s', '--skip-check', skipChecks.join(','), '--bc-api-key', token, '--repo-id', 'vscode/extension', '-f', fileName, '-o', 'json']);
+        const ckv = spawn('checkov', ['-s', '--skip-check', skipChecks.join(','), '--bc-api-key', token, '--repo-id', 'vscode/extension', '-f', fileName, '-o', 'json'], 
+            {
+                env: { ...process.env, BC_SOURCE: 'vscode', BC_SOURCE_VERSION: extensionVersion }
+            });
         let stdout = '';
 	
         ckv.stdout.on('data', data => {

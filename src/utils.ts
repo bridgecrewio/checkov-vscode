@@ -6,6 +6,9 @@ import { DiagnosticReferenceCode } from './diagnostics';
 import { CHECKOV_MAP } from './extension';
 import { showUnsupportedFileMessage } from './userInterface';
 
+const extensionData = vscode.extensions.getExtension('bridgecrew.checkov');
+export const extensionVersion = extensionData ? extensionData.packageJSON.version : 'unknown';
+
 type ExecOutput = [stdout: string, stderr: string];
 export const asyncExec = async (commandToExecute: string) : Promise<ExecOutput> => {
     return new Promise((resolve, reject) => {
