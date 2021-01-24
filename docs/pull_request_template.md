@@ -4,4 +4,4 @@
 
 **Pictures/videos**
 
-- [] I've reviewed my own code
+- [ ] I've reviewed my own code

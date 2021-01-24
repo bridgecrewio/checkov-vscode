@@ -20,7 +20,7 @@ export const asyncExec = async (commandToExecute: string) : Promise<ExecOutput> 
 };
 
 export const isSupportedFileType = (fileName: string, showMessage = false): boolean => {
-    if (!fileName.endsWith('.tf')) {
+    if (!(fileName.endsWith('.tf') || fileName.endsWith('.yml') || fileName.endsWith('.yaml') || fileName.endsWith('.json'))) {
         showMessage && showUnsupportedFileMessage();
         return false;
     }
