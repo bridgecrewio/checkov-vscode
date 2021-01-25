@@ -1,11 +1,9 @@
 name: build
 
 on: 
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Extension version (could be: x.x.x / patch / minor / major)'     
-        required: true
+  push:
+    branches:    
+      - master
 
 jobs:
   bump-version:
@@ -28,6 +26,5 @@ jobs:
           git fetch --tags
           latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`)
           echo "latest tag: $latest_tag"
-          echo "new tag: ${{ github.events.inputs.version }}"
-          npm version ${{ github.events.inputs.version }}
+          npm version patch
           git push
