@@ -1,14 +1,9 @@
 [![checkov](https://raw.githubusercontent.com/bridgecrewio/checkov/master/docs/web/images/checkov_by_bridgecrew.png)](#)
+
 [![Maintained by Bridgecrew.io](https://img.shields.io/badge/maintained%20by-bridgecrew.io-blueviolet)](https://bridgecrew.io/?utm_source=github&utm_medium=organic_oss&utm_campaign=checkov)
 [![build status](https://github.com/bridgecrewio/vscode-checkov/workflows/build/badge.svg)](https://github.com/bridgecrewio/checkov-vscode/actions?query=workflow%3Abuild)
-[![security status](https://github.com/bridgecrewio/vscode-checkov/workflows/security/badge.svg)](https://github.com/bridgecrewio/vscode-checkov/actions?query=event%3Apush+branch%3Amaster+workflow%3Asecurity) 
-[![code_coverage](https://raw.githubusercontent.com/bridgecrewio/vscode-checkov/master/coverage.svg?sanitize=true)](https://github.com/bridgecrewio/vscode-checkov/actions?query=workflow%3Acoverage)
-[![PyPI](https://img.shields.io/pypi/v/checkov)](https://pypi.org/project/checkov/)
-[![Python Version](https://img.shields.io/github/pipenv/locked/python-version/bridgecrewio/checkov)](#)
-[![Terraform Version](https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg)](#)
-[![Downloads](https://pepy.tech/badge/checkov)](https://pepy.tech/project/checkov)
-[![slack-community](https://slack.bridgecrew.io/badge.svg)](https://slack.bridgecrew.io/?utm_source=github&utm_medium=organic_oss&utm_campaign=checkov)
-[![Installs-count](https://vsmarketplacebadge.apphb.com/installs-short/bridgecrew.checkov.svg)]
+[![Installs-count](https://vsmarketplacebadge.apphb.com/installs-short/bridgecrew.checkov.svg)]() 
+[![slack-community](https://img.shields.io/badge/Slack-contact%20us-lightgrey.svg?logo=slack)](https://slack.bridgecrew.io/?utm_source=github&utm_medium=organic_oss&utm_campaign=checkov-vscode)
 
 
 # Checkov Extension for Visual Studio Code
