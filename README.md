@@ -2,7 +2,8 @@
 
 [![Maintained by Bridgecrew.io](https://img.shields.io/badge/maintained%20by-bridgecrew.io-blueviolet)](https://bridgecrew.io/?utm_source=github&utm_medium=organic_oss&utm_campaign=checkov)
 [![build status](https://github.com/bridgecrewio/vscode-checkov/workflows/build/badge.svg)](https://github.com/bridgecrewio/checkov-vscode/actions?query=workflow%3Abuild)
-[![Installs-count](https://vsmarketplacebadge.apphb.com/installs-short/bridgecrew.checkov.svg)]
+[![Installs-count](https://vsmarketplacebadge.apphb.com/installs-short/bridgecrew.checkov.svg)]() 
+[![slack-community](https://img.shields.io/badge/Slack-contact%20us-lightgrey.svg?logo=slack)](https://slack.bridgecrew.io/?utm_source=github&utm_medium=organic_oss&utm_campaign=checkov-vscode)
 
 
 # Checkov Extension for Visual Studio Code
