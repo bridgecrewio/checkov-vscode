@@ -27,5 +27,7 @@ jobs:
           git fetch --tags
           latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`)
           echo "latest tag: $latest_tag"
-          npm version patch --message "Chore(version): %s [skip-ci]"
-          git push
+          new_version=$(npm version patch --message "Chore(version): %s [skip-ci]")
+          echo "new tag: $new_version"
+          git push origin master
+          git push origin $new_version
