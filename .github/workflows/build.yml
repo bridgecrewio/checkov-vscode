@@ -6,7 +6,8 @@ on:
       - master
 
 jobs:
-  bump-version:
+  bump-version: 
+    if: "!contains(github.event.head_commit.message, '[skip-ci]')"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
@@ -26,5 +27,5 @@ jobs:
           git fetch --tags
           latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`)
           echo "latest tag: $latest_tag"
-          npm version patch
+          npm version patch --message "Chore(version): %s [skip-ci]"
           git push
