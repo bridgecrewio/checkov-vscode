@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
+        with:
+          token: ${{ secrets.ACCESS_TOKEN }} 
       - name: Setup Node.js
         uses: actions/setup-node@v1
         with:
@@ -18,8 +20,6 @@ jobs:
         run: |
           npm ci
       - name: update docs and bump version
-        env:
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
