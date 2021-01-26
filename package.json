@@ -1,6 +1,6 @@
 {
 	"name": "checkov",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"displayName": "Checkov",
 	"publisher": "Bridgecrew",
 	"description": "Scans infrastructure as code files for security misconfigurations. https://www.bridgecrew.io",
