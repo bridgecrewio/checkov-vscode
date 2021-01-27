@@ -48,9 +48,9 @@
 					"markdownDescription": "In order to activate inline infrastructure-as-code fixes, you need to integrate with Bridgecrew,   \n It's free to create an account and takes less than 2 minutes, Go to [Bridgecrew Platform](https://bridgecrew.cloud/) to get started.  \n Your API token can be found in the integrations tab, under \"API Token\". ",
 					"readOnly": true
 				},
-				"checkov.advanced.useSystemCheckov": {
+				"checkov.pre-installedCheckov": {
 					"title": "Enable using the system checkov",
-					"markdownDescription": "The extension installs and updates a separate Checkov instance regularly .  \n Are you sure you want to use the system checkov instead?",
+					"markdownDescription": "The Checkov Extension for Visual Studio Code will install a dedicated instance of Checkov.   \n Check this box if you wish to use a Checkov instance already deployed and configured locally on your system.",
 					"type": "boolean"
 				}
 			}
