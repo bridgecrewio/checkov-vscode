@@ -14,7 +14,7 @@
 		"url": "https://github.com/bridgecrewio/checkov-vscode/issues"
 	},
 	"engines": {
-		"vscode": "^1.48.2"
+		"vscode": "^1.45.0"
 	},
 	"categories": [
 		"Linters",

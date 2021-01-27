@@ -29,6 +29,7 @@ Features include:
 Open the Checkov Extension for Visual Studio Code in the Visual Studio Markeplace.
 
 ### Dependencies
+- [Python](https://www.python.org/downloads/) >= 3.7  
 
 The Checkov extension will invoke the latest version of ```Checkov```.
 
