@@ -1,17 +1,6 @@
-import * as vscode from 'vscode';
 import { Logger } from 'winston';
 import { join } from 'path';
 import { asyncExec } from './utils';
-
-export const useSystemCheckovVersion = async (): Promise<string | undefined> => {
-    // Read configuration 
-    const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('checkov');
-    const shouldUseSystemCheckov = configuration.get<boolean>('advanced.useSystemCheckov');
-    if (!shouldUseSystemCheckov) return;
-    const [checkovVersion] = await asyncExec('checkov --version');
-
-    return checkovVersion.replace('\n', '');
-};
 
 const isMac = () => process.platform === 'darwin';
 

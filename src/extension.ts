@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { TextEncoder } from 'util';
 import debounce from 'lodash/debounce';
 import { Logger } from 'winston';
-import { CheckovInstallation, useSystemCheckovVersion, installOrUpdateCheckov } from './checkovInstaller';
+import { CheckovInstallation, installOrUpdateCheckov } from './checkovInstaller';
 import { runCheckovScan } from './checkovRunner';
 import { applyDiagnostics } from './diagnostics';
 import { fixCodeActionProvider, providedCodeActionKinds } from './suggestFix';
@@ -40,15 +40,6 @@ export function activate(context: vscode.ExtensionContext): void {
         vscode.commands.registerCommand(INSTALL_OR_UPDATE_CHECKOV_COMMAND, async () => {
             try {
                 extensionReady = false;
-                const shouldUseSystemVersion = await useSystemCheckovVersion();
-                if (shouldUseSystemVersion) {
-                    logger.info(`Using system Checkov version ${shouldUseSystemVersion}.`);
-                    logger.warn('We recommend using the extension separate checkov instance, because we update it regularly.');
-                    setReadyStatusBarItem();
-                    extensionReady = true;
-                    return;
-                }
-
                 setSyncingStatusBarItem();
                 const preferredCheckovPath = escapePath(vscode.Uri.joinPath(context.globalStorageUri, 'checkov').fsPath);
                 const environment: CheckovInstallation = await installOrUpdateCheckov(logger, preferredCheckovPath);

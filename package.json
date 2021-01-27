@@ -3,7 +3,7 @@
 	"version": "1.0.5",
 	"displayName": "Checkov",
 	"publisher": "Bridgecrew",
-	"description": "Scans infrastructure as code files for security misconfigurations. https://www.bridgecrew.io",
+	"description": "Find and fix misconfigurations in infrastructure-as-code using Checkov.",
 	"license": "Apache-2.0",
 	"icon": "docs/icon.png",
 	"repository": {
@@ -42,16 +42,11 @@
 		"configuration": {
 			"title": "checkov",
 			"properties": {
-				"checkov.token": {
+				"checkov.Token": {
 					"title": "Token",
 					"type": "string",
 					"markdownDescription": "In order to activate inline infrastructure-as-code fixes, you need to integrate with Bridgecrew,   \n It's free to create an account and takes less than 2 minutes, Go to [Bridgecrew Platform](https://bridgecrew.cloud/) to get started.  \n Your API token can be found in the integrations tab, under \"API Token\". ",
 					"readOnly": true
-				},
-				"checkov.pre-installedCheckov": {
-					"title": "Enable using the system checkov",
-					"markdownDescription": "The Checkov Extension for Visual Studio Code will install a dedicated instance of Checkov.   \n Check this box if you wish to use a Checkov instance already deployed and configured locally on your system.",
-					"type": "boolean"
 				}
 			}
 		}
