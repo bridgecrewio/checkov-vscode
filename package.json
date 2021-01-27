@@ -45,9 +45,13 @@
 				"checkov.token": {
 					"title": "Token",
 					"type": "string",
-					"description": "Add your Bridgecrew API token, you can find it in the integration section under `API token`",
-					"markdownDescription": true,
+					"markdownDescription": "In order to activate inline infrastructure-as-code fixes, you need to integrate with Bridgecrew,   \n It's free to create an account and takes less than 2 minutes, Go to [Bridgecrew Platform](https://bridgecrew.cloud/) to get started.  \n Your API token can be found in the integrations tab, under \"API Token\". ",
 					"readOnly": true
+				},
+				"checkov.advanced.useSystemCheckov": {
+					"title": "Enable using the system checkov",
+					"markdownDescription": "The extension installs and updates a separate Checkov instance regularly .  \n Are you sure you want to use the system checkov instead?",
+					"type": "boolean"
 				}
 			}
 		}

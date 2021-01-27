@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
+import path from 'path';
 import { exec } from 'child_process';
-import winston = require('winston');
+import winston from 'winston';
 import { FailedCheckovCheck } from './checkovRunner';
 import { DiagnosticReferenceCode } from './diagnostics';
 import { CHECKOV_MAP } from './extension';
@@ -18,6 +19,11 @@ export const asyncExec = async (commandToExecute: string) : Promise<ExecOutput> 
         });
     });
 };
+
+export const escapePath = (fsPath: string): string => 
+    fsPath.split(path.sep).map(dir => dir.includes(' ') ? `"${dir}"` : dir).join(path.sep);
+
+export const unescapePath = (fsPath: string): string => fsPath.replace(new RegExp('"', 'g'), '');
 
 export const isSupportedFileType = (fileName: string, showMessage = false): boolean => {
     if (!(fileName.endsWith('.tf') || fileName.endsWith('.yml') || fileName.endsWith('.yaml') || fileName.endsWith('.json'))) {
