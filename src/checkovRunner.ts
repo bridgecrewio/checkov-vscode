@@ -39,7 +39,7 @@ export const runCheckovScan = (logger: Logger, checkovPath: string, extensionVer
     return new Promise((resolve, reject) => {
         const checkovArguments: string[] = ['-s', '--skip-check', skipChecks.join(','), '--bc-api-key', token, '--repo-id', 'vscode/extension', '-f', `"${fileName}"`, '-o', 'json'];
         const checkovCommand = `"${unescapePath(checkovPath)}"`;
-        logger.info('Running checkov', { checkovPath, arguments: checkovArguments });
+        logger.info('Running checkov', { checkovCommand, arguments: checkovArguments });
         const ckv = spawn(checkovCommand, checkovArguments, 
             {
                 shell: true,

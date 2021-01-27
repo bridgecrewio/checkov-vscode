@@ -49,7 +49,7 @@ export function activate(context: vscode.ExtensionContext): void {
                 extensionReady = true;
             } catch(error) {
                 setErrorStatusBarItem();
-                logger.error('Error occurred while preparing Checkov', { error });
+                logger.error('Error occurred while preparing Checkov. try to reload vscode.', { error });
                 showContactUsDetails(context.logUri, logFileName);
             }
         }),
