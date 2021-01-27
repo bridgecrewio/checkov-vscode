@@ -42,7 +42,7 @@
 		"configuration": {
 			"title": "checkov",
 			"properties": {
-				"checkov.Token": {
+				"checkov.token": {
 					"title": "Token",
 					"type": "string",
 					"markdownDescription": "In order to activate inline infrastructure-as-code fixes, you need to integrate with Bridgecrew,   \n It's free to create an account and takes less than 2 minutes, Go to [Bridgecrew Platform](https://bridgecrew.cloud/) to get started.  \n Your API token can be found in the integrations tab, under \"API Token\". ",
