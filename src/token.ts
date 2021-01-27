@@ -8,7 +8,7 @@ export const assureTokenSet = (logger: Logger, openConfigurationCommand: string)
     const token = configuration.get<string>('token');
     if(!token) {
         logger.error('Bridgecrew API token was not found. Please add it to the configuration.');
-        vscode.window.showErrorMessage('Bridgecrew API token was not found. Please add it to the configuration.', 'Open configuration')
+        vscode.window.showErrorMessage('Bridgecrew API token was not found. Please add it to the configuration in order to scan your code.', 'Open configuration')
             .then(choice => choice === 'Open configuration' && vscode.commands.executeCommand(openConfigurationCommand));
         setMissingConfigurationStatusBarItem();
     }

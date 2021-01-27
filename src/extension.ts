@@ -6,7 +6,7 @@ import { CheckovInstallation, installOrUpdateCheckov } from './checkovInstaller'
 import { runCheckovScan } from './checkovRunner';
 import { applyDiagnostics } from './diagnostics';
 import { fixCodeActionProvider, providedCodeActionKinds } from './suggestFix';
-import { getLogger, saveCheckovResult, isSupportedFileType, extensionVersion } from './utils';
+import { getLogger, saveCheckovResult, isSupportedFileType, extensionVersion, escapePath } from './utils';
 import { initializeStatusBarItem, setErrorStatusBarItem, setPassedStatusBarItem, setReadyStatusBarItem, setSyncingStatusBarItem, showContactUsDetails } from './userInterface';
 import { assureTokenSet } from './token';
 import { INSTALL_OR_UPDATE_CHECKOV_COMMAND, OPEN_CONFIGURATION_COMMAND, OPEN_EXTERNAL_COMMAND, REMOVE_DIAGNOSTICS_COMMAND, RUN_FILE_SCAN_COMMAND } from './commands';
@@ -23,6 +23,7 @@ export function activate(context: vscode.ExtensionContext): void {
     initializeStatusBarItem(OPEN_CONFIGURATION_COMMAND);    
     let extensionReady = false;
     let checkovRunCancelTokenSource = new vscode.CancellationTokenSource();
+    let checkovPath = 'checkov';
 
     const resetCancelTokenSource = () => {
         checkovRunCancelTokenSource.cancel();
@@ -40,13 +41,15 @@ export function activate(context: vscode.ExtensionContext): void {
             try {
                 extensionReady = false;
                 setSyncingStatusBarItem();
-                const environment: CheckovInstallation = await installOrUpdateCheckov(logger);
-                logger.info(`finished installing checkov with ${environment.checkovPython}.`);
+                const preferredCheckovPath = escapePath(vscode.Uri.joinPath(context.globalStorageUri, 'checkov').fsPath);
+                const environment: CheckovInstallation = await installOrUpdateCheckov(logger, preferredCheckovPath);
+                checkovPath = environment.path;
+                logger.info(`finished installing checkov with ${environment.checkovPython}. Using from path ${environment.path}`);
                 setReadyStatusBarItem();
                 extensionReady = true;
             } catch(error) {
                 setErrorStatusBarItem();
-                logger.error('Error occurred while trying to install Checkov', { error });
+                logger.error('Error occurred while preparing Checkov. try to reload vscode.', { error });
                 showContactUsDetails(context.logUri, logFileName);
             }
         }),
@@ -133,7 +136,7 @@ export function activate(context: vscode.ExtensionContext): void {
         logger.info('Starting to scan.');
         try {
             setSyncingStatusBarItem();
-            const checkovResponse = await runCheckovScan(logger, extensionVersion, fileUri ? fileUri.fsPath : editor.document.fileName, token, cancelToken);
+            const checkovResponse = await runCheckovScan(logger, checkovPath, extensionVersion, fileUri ? fileUri.fsPath : editor.document.fileName, token, cancelToken);
             saveCheckovResult(context.workspaceState, checkovResponse.results.failedChecks);
             applyDiagnostics(editor.document, diagnostics, checkovResponse.results.failedChecks);
             checkovResponse.results.failedChecks.length > 0 ? setErrorStatusBarItem() : setPassedStatusBarItem();
