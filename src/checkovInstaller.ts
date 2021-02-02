@@ -5,7 +5,7 @@ import { asyncExec } from './utils';
 const updateCheckovWithSystemPython = async (logger: Logger, installInPath: string): Promise<string> => {
     try {
         logger.info('Trying to install Checkov using pip3.');
-        await asyncExec(`pip3 install -U --target ${installInPath} checkov`);
+        await asyncExec(`pip3 install -U --target ${installInPath} checkov -i https://pypi.org/simple/`);
         return join(installInPath, 'bin', 'checkov');
     } catch (error) {
         logger.error('Failed to install or update Checkov using pip3. Error:', { error });
