@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import { spawn } from 'child_process';
 import { Logger } from 'winston';
-import { unescapePath } from './utils';
 
 export interface FailedCheckovCheck {
     checkId: string;
@@ -35,12 +34,11 @@ interface CheckovResponseRaw {
 
 const skipChecks = ['CKV_AWS_52'];
 
-export const runCheckovScan = (logger: Logger, checkovPath: string, extensionVersion: string, fileName: string, token: string, cancelToken: vscode.CancellationToken): Promise<CheckovResponse> => {
+export const runCheckovScan = (logger: Logger, extensionVersion: string, fileName: string, token: string, cancelToken: vscode.CancellationToken): Promise<CheckovResponse> => {
     return new Promise((resolve, reject) => {
         const checkovArguments: string[] = ['-s', '--skip-check', skipChecks.join(','), '--bc-api-key', token, '--repo-id', 'vscode/extension', '-f', `"${fileName}"`, '-o', 'json'];
-        const checkovCommand = `"${unescapePath(checkovPath)}"`;
-        logger.info('Running checkov', { checkovCommand, arguments: checkovArguments });
-        const ckv = spawn(checkovCommand, checkovArguments, 
+        logger.info('Running checkov', { arguments: checkovArguments.map(argument => argument === token ? '****' : argument) });
+        const ckv = spawn('checkov', checkovArguments, 
             {
                 shell: true,
                 env: { ...process.env, BC_SOURCE: 'vscode', BC_SOURCE_VERSION: extensionVersion }

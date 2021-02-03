@@ -1,12 +1,11 @@
 import { Logger } from 'winston';
-import { join } from 'path';
 import { asyncExec } from './utils';
 
-const updateCheckovWithSystemPython = async (logger: Logger, installInPath: string): Promise<string> => {
+const updateCheckovWithPip3 = async (logger: Logger): Promise<void> => {
     try {
         logger.info('Trying to install Checkov using pip3.');
-        await asyncExec(`pip3 install -U --target ${installInPath} checkov -i https://pypi.org/simple/`);
-        return join(installInPath, 'bin', 'checkov');
+        await asyncExec('pip3 install -U checkov -i https://pypi.org/simple/');
+        logger.info('Checkov installed successfully using pip3.');
     } catch (error) {
         logger.error('Failed to install or update Checkov using pip3. Error:', { error });
         throw new Error('Failed to install or update Checkov using pip3');
@@ -16,13 +15,11 @@ const updateCheckovWithSystemPython = async (logger: Logger, installInPath: stri
 type CheckovPython = 'pip3';
 export interface CheckovInstallation {
     checkovPython: CheckovPython;
-    path: string;
 }
 
-export const installOrUpdateCheckov = async (logger: Logger, preferredPath: string): Promise<CheckovInstallation> => {
+export const installOrUpdateCheckov = async (logger: Logger): Promise<CheckovInstallation> => {
     logger.info('Using pip3 to install checkov.');
-    const pipInstallPath = await updateCheckovWithSystemPython(logger, preferredPath);
-    logger.info('Checkov installed successfully using pip3.');
+    await updateCheckovWithPip3(logger);
 
-    return { checkovPython: 'pip3', path: pipInstallPath };
+    return { checkovPython: 'pip3' };
 };
