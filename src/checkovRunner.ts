@@ -37,7 +37,7 @@ const skipChecks = ['CKV_AWS_52'];
 export const runCheckovScan = (logger: Logger, extensionVersion: string, fileName: string, token: string, cancelToken: vscode.CancellationToken): Promise<CheckovResponse> => {
     return new Promise((resolve, reject) => {
         const checkovArguments: string[] = ['-s', '--skip-check', skipChecks.join(','), '--bc-api-key', token, '--repo-id', 'vscode/extension', '-f', `"${fileName}"`, '-o', 'json'];
-        logger.info('Running checkov', { arguments: checkovArguments });
+        logger.info('Running checkov', { arguments: checkovArguments.map(argument => argument === token ? '****' : argument) });
         const ckv = spawn('checkov', checkovArguments, 
             {
                 shell: true,
