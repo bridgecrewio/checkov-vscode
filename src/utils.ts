@@ -20,11 +20,6 @@ export const asyncExec = async (commandToExecute: string) : Promise<ExecOutput> 
     });
 };
 
-export const escapePath = (fsPath: string): string => 
-    fsPath.split(path.sep).map(dir => dir.includes(' ') ? `"${dir}"` : dir).join(path.sep);
-
-export const unescapePath = (fsPath: string): string => fsPath.replace(new RegExp('"', 'g'), '');
-
 export const isSupportedFileType = (fileName: string, showMessage = false): boolean => {
     if (!(fileName.endsWith('.tf') || fileName.endsWith('.yml') || fileName.endsWith('.yaml') || fileName.endsWith('.json'))) {
         showMessage && showUnsupportedFileMessage();
