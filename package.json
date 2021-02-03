@@ -1,6 +1,6 @@
 {
 	"name": "checkov",
-	"version": "1.0.10",
+	"version": "1.0.11",
 	"displayName": "Checkov",
 	"publisher": "Bridgecrew",
 	"description": "Find and fix misconfigurations in infrastructure-as-code using Checkov.",
