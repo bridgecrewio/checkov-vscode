@@ -24,7 +24,7 @@ Extension features include:
 * In Terraform, checks support evaluation of arguments expressed in [variables](https://github.com/bridgecrewio/checkov/blob/master/docs/2.Concepts/Evaluations.md) and remote modules to their actual values.
 * Supports inline [suppression](https://github.com/bridgecrewio/checkov/blob/master/docs/2.Concepts/Suppressions.md) via comments.
 * Links to policy descriptions, rationales as well as step by step instructions for fixing known misconfigurations.
-* Fix suggestions for commonly misconfigured Terraform and CloudFormation attributes.🪄 🪄 🪄 
+* Fix suggestions for commonly misconfigured Terraform and CloudFormation attributes. 
 
 ## Getting started
 
