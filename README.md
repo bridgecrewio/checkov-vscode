@@ -10,7 +10,7 @@
 
 [Checkov](https://github.com/bridgecrewio/checkov) is a static code analysis tool for infrastrucutre-as-code. 
 
-The Checkov Extension for VSCODE enables developers to get real-time scan results, as well as inline fix suggestions as they develop cloud infratructure. 
+The Checkov Extension for VSCODE enables developers to get real-time scan results, as well as inline fix suggestions as they develop cloud infrastructure. 
 
 The extension is currently available for download direcrtly from the [Visual Studio Extension Marketplace](https://marketplace.visualstudio.com/items?itemName=Bridgecrew.checkov) and its source code is available in an [Apache 2.0 licensed repository](https://github.com/bridgecrewio/checkov-vscode). Development of the extension is ongoing and it is available for pre-release usage 🚧 .
 
