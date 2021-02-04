@@ -12,6 +12,8 @@
 
 The Checkov Extension for VSCODE enables developers to get real-time scan results, as well as inline fix suggestions as they develop cloud infrastructure. 
 
+![Checkov VSCode plugin in action!](./docs/checkov-vscode-demo.gif)
+
 The extension is currently available for download direcrtly from the [Visual Studio Extension Marketplace](https://marketplace.visualstudio.com/items?itemName=Bridgecrew.checkov) and its source code is available in an [Apache 2.0 licensed repository](https://github.com/bridgecrewio/checkov-vscode). Development of the extension is ongoing and it is available for pre-release usage 🚧 .
 
 Activating the extension requires submission of one-time Bridgecrew API Token that can be obtained by [creating a new Bridgecrew platform account](https://docs.bridgecrew.io/docs/get-api-token). It uses open [Bridgecrew Developer APIs](https://docs.bridgecrew.io/reference) to evaluate code and offer automated inline fixes. For more information about data shared with Bridgecrew see the [Disclaimer](#disclaimer) section below).
@@ -25,6 +27,7 @@ Extension features include:
 * Supports inline [suppression](https://github.com/bridgecrewio/checkov/blob/master/docs/2.Concepts/Suppressions.md) via comments.
 * Links to policy descriptions, rationales as well as step by step instructions for fixing known misconfigurations.
 * Fix suggestions for commonly misconfigured Terraform and CloudFormation attributes. 
+
 
 ## Getting started
 
