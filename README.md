@@ -68,8 +68,9 @@ Looking to contribute new checks? Learn how to write a new check (AKA policy) [h
 
 ## Disclaimer
 
-`checkov` does not save, publish or share with anyone any identifiable customer information.
-No identifiable customer information is used to query Bridgecrew's publicly accessible guides. `checkov` uses Bridgecrew's API to enrich the results with links to remediation guides. 
+`checkov`, as run by our vscode plugin, does not save, publish or share with anyone any identifiable customer information. No identifiable customer information is used to query Bridgecrew's publicly accessible guides.
+To use this checkov-vscode extension, you will need to create a free account at bridgecrew.cloud using your e-mail, the plugin uses Bridgecrew.cloud's fixes API to analyse and produce code fixes, and enrich the results provided into VSCode.
+To generate fixes, files found to have triggered checkov violations are made available to the fixes API for the sole purpose of generating inline fixes code recommendations.
 
 ## Support
 

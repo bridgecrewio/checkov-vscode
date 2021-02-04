@@ -45,7 +45,7 @@
 				"checkov.token": {
 					"title": "Token",
 					"type": "string",
-					"markdownDescription": "In order to activate inline infrastructure-as-code fixes, you need to integrate with Bridgecrew,   \n It's free to create an account and takes less than 2 minutes, Go to [Bridgecrew Platform](https://bridgecrew.cloud/) to get started.  \n Your API token can be found in the integrations tab, under \"API Token\". ",
+					"markdownDescription": "In order to activate inline infrastructure-as-code fixes, you need to integrate with Bridgecrew's fixes API.   \n It's free to create an account and takes less than 2 minutes, Go to [Bridgecrew Platform](https://bridgecrew.cloud/) to get started.  \n Your API token can be found in the integrations tab, under \"API Token\". \n The extension will provide API access to the file, if checkov finds policy violations, in order to generate and supply the suggested fixes.",
 					"readOnly": true
 				}
 			}
