@@ -33,7 +33,7 @@ Extension features include:
 
 ### Install
 
-Open the Checkov Extension for Visual Studio Code in the Visual Studio Markeplace.
+Open the Checkov Extension for Visual Studio Code in the [Visual Studio Markeplace](https://marketplace.visualstudio.com/items?itemName=Bridgecrew.checkov).
 
 ### Dependencies
 
