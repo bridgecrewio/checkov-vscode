@@ -58,6 +58,10 @@ The Checkov extension will invoke the latest version of ```Checkov```.
 * You can skip checks by adding an inline skip annotaiton ```checkov:skip=<check_id>:<suppression_comment>```. For more details see the [docs](https://github.com/bridgecrewio/checkov/blob/master/docs/2.Concepts/Suppressions.md).
 * The extension will continue to scan file modifications and highlight errors in your editor upon every material resource modification.
 
+### Troubleshooting logs
+
+To access checkov-vscode logs directory, open the VSCODE Command Palette `(Ctrl+Shift+P)`, run the command `Developer: Open Extensions Logs Folder`, and the log file should be inside the `Bridgecrew.checkov` folder.
+
 ## Contributing
 
 Contribution is welcomed!
