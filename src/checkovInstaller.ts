@@ -57,8 +57,6 @@ const installOrUpdateCheckovWithDocker = async (logger: Logger): Promise<string 
     }
 };
 
-
-
 type CheckovInstallationMethod = 'pip3' | 'pipenv' | 'docker';
 export interface CheckovInstallation {
     checkovInstallationMethod: CheckovInstallationMethod;
@@ -66,12 +64,12 @@ export interface CheckovInstallation {
 }
 
 export const installOrUpdateCheckov = async (logger: Logger): Promise<CheckovInstallation> => {
-    const pip3CheckovPath = await installOrUpdateCheckovWithPip3(logger);
-    if (pip3CheckovPath) return { checkovInstallationMethod: 'pip3' , checkovPath: pip3CheckovPath };
-    const pipenvCheckovPath = await installOrUpdateCheckovWithPipenv(logger);
-    if (pipenvCheckovPath) return { checkovInstallationMethod: 'pipenv' , checkovPath: pipenvCheckovPath };
     const dockerCheckovPath = await installOrUpdateCheckovWithDocker(logger);
     if (dockerCheckovPath) return { checkovInstallationMethod: 'docker' , checkovPath: dockerCheckovPath };
+    const pipenvCheckovPath = await installOrUpdateCheckovWithPipenv(logger);
+    if (pipenvCheckovPath) return { checkovInstallationMethod: 'pipenv' , checkovPath: pipenvCheckovPath };
+    const pip3CheckovPath = await installOrUpdateCheckovWithPip3(logger);
+    if (pip3CheckovPath) return { checkovInstallationMethod: 'pip3' , checkovPath: pip3CheckovPath };
 
     throw new Error('Could not install Checkov.');
 };

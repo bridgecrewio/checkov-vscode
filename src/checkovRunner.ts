@@ -37,13 +37,13 @@ interface CheckovResponseRaw {
 const skipChecks = ['CKV_AWS_52'];
 
 const dockerMountDir = '/checkovScan';
-const getDockerRunParams = (filePath: string) => ['run', '--tty', '--volume', `${path.dirname(filePath)}:${dockerMountDir}`, 'bridgecrew/checkov'];
+const getDockerRunParams = (filePath: string, extensionVersion: string) => ['run', '--tty', '--env', 'BC_SOURCE=vscode', '--env', `BC_SOURCE_VERSION=${extensionVersion}`, '--volume', `${path.dirname(filePath)}:${dockerMountDir}`, 'bridgecrew/checkov'];
 
 export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInstallation, extensionVersion: string, fileName: string, token: string, cancelToken: vscode.CancellationToken): Promise<CheckovResponse> => {
     return new Promise((resolve, reject) => {
         const { checkovInstallationMethod, checkovPath } = checkovInstallation;
         const [checkovExecutablePath, ...checkovInstallationParams] = checkovPath.split(' ');
-        const dockerRunParams = checkovInstallationMethod === 'docker' ? getDockerRunParams(fileName) : [];
+        const dockerRunParams = checkovInstallationMethod === 'docker' ? getDockerRunParams(fileName, extensionVersion) : [];
         const filePath = checkovInstallationMethod === 'docker' ? path.join(dockerMountDir, path.basename(fileName)) : fileName;
         const checkovArguments: string[] = [...checkovInstallationParams, ...dockerRunParams, '-s', '--skip-check', skipChecks.join(','), '--bc-api-key', token, '--repo-id', 'vscode/extension', '-f', `"${filePath}"`, '-o', 'json'];
         logger.info('Running checkov', { executablePath: checkovExecutablePath, arguments: checkovArguments.map(argument => argument === token ? '****' : argument) });
@@ -76,10 +76,9 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
                     logger.debug('Got an empty reply from checkov', { reply: stdout, fileName });
                     return resolve({ results: { failedChecks: [] } });
                 }
+
                 const output: CheckovResponseRaw = JSON.parse(stdout);
-    
                 logger.debug('Checkov task output:', output);
-        
                 resolve(parseCheckovResponse(output));
             } catch (err) {
                 reject('Failed to get response from Checkov.');
