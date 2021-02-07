@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import path from 'path';
 import { exec } from 'child_process';
 import winston from 'winston';
 import { FailedCheckovCheck } from './checkovRunner';
@@ -45,7 +44,7 @@ export const getLogger = (logFileDir: string, logFileName: string): winston.Logg
     format: winston.format.combine(
         winston.format.splat(),
         winston.format.printf(({ level, message, ...rest }) => {
-            const logError = rest.error ? { error: { ...rest.error, message: rest.error.message, stack: rest.error.stack } } : {};
+            const logError = rest.error && rest.error instanceof Error ? { error: { ...rest.error, message: rest.error.message, stack: rest.error.stack } } : {};
             const argumentsString = JSON.stringify({ ...rest, ...logError });
             return `[${level}]: ${message} ${argumentsString !== '{}' ? argumentsString : ''}`; 
         })

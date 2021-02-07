@@ -58,19 +58,23 @@ export const runCheckovScan = (logger: Logger, checkovPath: string, extensionVer
         });
 			
         ckv.on('close', code => {
-            if (cancelToken.isCancellationRequested) return reject('Cancel invoked');
-            logger.debug(`Checkov scan process exited with code ${code}`);
-            if (code !== 0) return reject(`Checkov exited with code ${code}`);
-            
-            if (stdout.startsWith('[]')) {
-                logger.debug('Got an empty reply from checkov', { reply: stdout, fileName });
-                return resolve({ results: { failedChecks: [] } });
+            try {
+                if (cancelToken.isCancellationRequested) return reject('Cancel invoked');
+                logger.debug(`Checkov scan process exited with code ${code}`);
+                if (code !== 0) return reject(`Checkov exited with code ${code}`);
+                
+                if (stdout.startsWith('[]')) {
+                    logger.debug('Got an empty reply from checkov', { reply: stdout, fileName });
+                    return resolve({ results: { failedChecks: [] } });
+                }
+                const output: CheckovResponseRaw = JSON.parse(stdout);
+    
+                logger.debug('Checkov task output:', output);
+        
+                resolve(parseCheckovResponse(output));
+            } catch (err) {
+                reject('Failed to get response from Checkov.');
             }
-            const output: CheckovResponseRaw = JSON.parse(stdout);
-
-            logger.debug('Checkov task output:', output);
-	
-            resolve(parseCheckovResponse(output));
         });
 
         cancelToken.onCancellationRequested((cancelEvent) => {
