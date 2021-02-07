@@ -39,23 +39,27 @@ const skipChecks = ['CKV_AWS_52'];
 const dockerMountDir = '/checkovScan';
 const getDockerRunParams = (filePath: string, extensionVersion: string) => ['run', '--tty', '--env', 'BC_SOURCE=vscode', '--env', `BC_SOURCE_VERSION=${extensionVersion}`, '--volume', `${path.dirname(filePath)}:${dockerMountDir}`, 'bridgecrew/checkov'];
 
+const cleanupStdout = (stdout: string) => stdout.replace(/.\[0m/g,''); // Clean docker run ANSI escapse chars
+
 export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInstallation, extensionVersion: string, fileName: string, token: string, cancelToken: vscode.CancellationToken): Promise<CheckovResponse> => {
     return new Promise((resolve, reject) => {
         const { checkovInstallationMethod, checkovPath } = checkovInstallation;
-        const [checkovExecutablePath, ...checkovInstallationParams] = checkovPath.split(' ');
         const dockerRunParams = checkovInstallationMethod === 'docker' ? getDockerRunParams(fileName, extensionVersion) : [];
         const filePath = checkovInstallationMethod === 'docker' ? path.join(dockerMountDir, path.basename(fileName)) : fileName;
-        const checkovArguments: string[] = [...checkovInstallationParams, ...dockerRunParams, '-s', '--skip-check', skipChecks.join(','), '--bc-api-key', token, '--repo-id', 'vscode/extension', '-f', `"${filePath}"`, '-o', 'json'];
-        logger.info('Running checkov', { executablePath: checkovExecutablePath, arguments: checkovArguments.map(argument => argument === token ? '****' : argument) });
+        const checkovArguments: string[] = [...dockerRunParams, '-s', '--skip-check', skipChecks.join(','), '--bc-api-key', token, '--repo-id', 'vscode/extension', '-f', `"${filePath}"`, '-o', 'json'];
+        logger.info('Running checkov', { executablePath: checkovPath, arguments: checkovArguments.map(argument => argument === token ? '****' : argument) });
         const ckv = spawn(checkovPath, checkovArguments, 
             {
                 shell: true,
                 env: { ...process.env, BC_SOURCE: 'vscode', BC_SOURCE_VERSION: extensionVersion }
             });
+        
         let stdout = '';
 	
         ckv.stdout.on('data', data => {
-            stdout += data;
+            if (data.toString().startsWith('{') || stdout) {           
+                stdout += data;
+            }
         });
 			
         ckv.stderr.on('data', data => {
@@ -77,10 +81,12 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
                     return resolve({ results: { failedChecks: [] } });
                 }
 
-                const output: CheckovResponseRaw = JSON.parse(stdout);
-                logger.debug('Checkov task output:', output);
+                const cleanStdout = cleanupStdout(stdout);
+                logger.debug('Checkov task output:', { cleanStdout });
+                const output: CheckovResponseRaw = JSON.parse(cleanStdout);
                 resolve(parseCheckovResponse(output));
-            } catch (err) {
+            } catch (error) {
+                logger.error('Failed to get response from Checkov.', { error });
                 reject('Failed to get response from Checkov.');
             }
         });

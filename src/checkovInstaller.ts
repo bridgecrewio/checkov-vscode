@@ -66,10 +66,10 @@ export interface CheckovInstallation {
 export const installOrUpdateCheckov = async (logger: Logger): Promise<CheckovInstallation> => {
     const dockerCheckovPath = await installOrUpdateCheckovWithDocker(logger);
     if (dockerCheckovPath) return { checkovInstallationMethod: 'docker' , checkovPath: dockerCheckovPath };
-    const pipenvCheckovPath = await installOrUpdateCheckovWithPipenv(logger);
-    if (pipenvCheckovPath) return { checkovInstallationMethod: 'pipenv' , checkovPath: pipenvCheckovPath };
     const pip3CheckovPath = await installOrUpdateCheckovWithPip3(logger);
     if (pip3CheckovPath) return { checkovInstallationMethod: 'pip3' , checkovPath: pip3CheckovPath };
+    const pipenvCheckovPath = await installOrUpdateCheckovWithPipenv(logger);
+    if (pipenvCheckovPath) return { checkovInstallationMethod: 'pipenv' , checkovPath: pipenvCheckovPath };
 
     throw new Error('Could not install Checkov.');
 };
