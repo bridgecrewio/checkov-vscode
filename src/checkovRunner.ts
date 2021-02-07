@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import { spawn } from 'child_process';
+import * as path from 'path';
 import { Logger } from 'winston';
+import { CheckovInstallation } from './checkovInstaller';
 
 export interface FailedCheckovCheck {
     checkId: string;
@@ -34,10 +36,17 @@ interface CheckovResponseRaw {
 
 const skipChecks = ['CKV_AWS_52'];
 
-export const runCheckovScan = (logger: Logger, checkovPath: string, extensionVersion: string, fileName: string, token: string, cancelToken: vscode.CancellationToken): Promise<CheckovResponse> => {
+const dockerMountDir = '/checkovScan';
+const getDockerRunParams = (filePath: string) => ['run', '--tty', '--volume', `${path.dirname(filePath)}:${dockerMountDir}`, 'bridgecrew/checkov'];
+
+export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInstallation, extensionVersion: string, fileName: string, token: string, cancelToken: vscode.CancellationToken): Promise<CheckovResponse> => {
     return new Promise((resolve, reject) => {
-        const checkovArguments: string[] = ['-s', '--skip-check', skipChecks.join(','), '--bc-api-key', token, '--repo-id', 'vscode/extension', '-f', `"${fileName}"`, '-o', 'json'];
-        logger.info('Running checkov', { checkovPath, arguments: checkovArguments.map(argument => argument === token ? '****' : argument) });
+        const { checkovInstallationMethod, checkovPath } = checkovInstallation;
+        const [checkovExecutablePath, ...checkovInstallationParams] = checkovPath.split(' ');
+        const dockerRunParams = checkovInstallationMethod === 'docker' ? getDockerRunParams(fileName) : [];
+        const filePath = checkovInstallationMethod === 'docker' ? path.join(dockerMountDir, path.basename(fileName)) : fileName;
+        const checkovArguments: string[] = [...checkovInstallationParams, ...dockerRunParams, '-s', '--skip-check', skipChecks.join(','), '--bc-api-key', token, '--repo-id', 'vscode/extension', '-f', `"${filePath}"`, '-o', 'json'];
+        logger.info('Running checkov', { executablePath: checkovExecutablePath, arguments: checkovArguments.map(argument => argument === token ? '****' : argument) });
         const ckv = spawn(checkovPath, checkovArguments, 
             {
                 shell: true,
