@@ -46,8 +46,8 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
     return new Promise((resolve, reject) => {
         const { checkovInstallationMethod, checkovPath, workingDir } = checkovInstallation;
         const dockerRunParams = checkovInstallationMethod === 'docker' ? getDockerRunParams(fileName, extensionVersion) : [];
-        const filePath = checkovInstallationMethod === 'docker' ? path.join(dockerMountDir, path.basename(fileName)) : fileName;
-        const checkovArguments: string[] = [...dockerRunParams, '-s', '--skip-check', skipChecks.join(','), '--bc-api-key', token, '--repo-id', 'vscode/extension', '-f', `"${convertToUnixPath(filePath)}"`, '-o', 'json'];
+        const filePath = checkovInstallationMethod === 'docker' ? convertToUnixPath(path.join(dockerMountDir, path.basename(fileName))) : fileName;
+        const checkovArguments: string[] = [...dockerRunParams, '-s', '--skip-check', skipChecks.join(','), '--bc-api-key', token, '--repo-id', 'vscode/extension', '-f', `"${filePath}"`, '-o', 'json'];
         logger.info('Running checkov', { executablePath: checkovPath, arguments: checkovArguments.map(argument => argument === token ? '****' : argument) });
         const ckv = spawn(checkovPath, checkovArguments, 
             {
