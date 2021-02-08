@@ -58,7 +58,7 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
         let stdout = '';
 	
         ckv.stdout.on('data', data => {
-            if (data.toString().startsWith('{') || stdout) {           
+            if (data.toString().startsWith('{') || data.toString().startsWith('[') || stdout) {           
                 stdout += data;
             }
         });
