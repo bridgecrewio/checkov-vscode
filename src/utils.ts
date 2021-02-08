@@ -60,6 +60,7 @@ export const getLogger = (logFileDir: string, logFileName: string): winston.Logg
 
 export const convertToUnixPath = (path: string): string => {
     const isExtendedLengthPath = /^\\\\\?\\/.test(path);
+    // eslint-disable-next-line no-control-regex
     const hasNonAscii = /[^\u0000-\u0080]+/.test(path);
 
     if (isExtendedLengthPath || hasNonAscii) {
