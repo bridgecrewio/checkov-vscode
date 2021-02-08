@@ -37,7 +37,7 @@ interface CheckovResponseRaw {
 const skipChecks = ['CKV_AWS_52'];
 
 const dockerMountDir = '/checkovScan';
-const getDockerRunParams = (filePath: string, extensionVersion: string) => ['run', '--tty', '--env', 'BC_SOURCE=vscode', '--env', 'LOG_LEVEL=DEBUG', '--env', `BC_SOURCE_VERSION=${extensionVersion}`, '--volume', `${path.dirname(filePath)}:${dockerMountDir}`, 'bridgecrew/checkov'];
+const getDockerRunParams = (filePath: string, extensionVersion: string) => ['run', '--tty', '--env', 'BC_SOURCE=vscode', '--env', 'LOG_LEVEL=DEBUG', '--env', `BC_SOURCE_VERSION=${extensionVersion}`, '--volume', `"${path.dirname(filePath)}:${dockerMountDir}"`, 'bridgecrew/checkov'];
 
 const cleanupStdout = (stdout: string) => stdout.replace(/.\[0m/g,''); // Clean docker run ANSI escapse chars
 
