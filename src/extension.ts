@@ -138,7 +138,7 @@ export function activate(context: vscode.ExtensionContext): void {
             const filePath = fileUri ? fileUri.fsPath : editor.document.fileName;
             
             if (!checkovInstallation) {
-                logger.error('Checkov is not installed.');
+                logger.error('Checkov is not installed, aborting scan.');
                 return;
             }
             
