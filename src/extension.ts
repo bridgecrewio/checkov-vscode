@@ -23,6 +23,8 @@ export function activate(context: vscode.ExtensionContext): void {
     initializeStatusBarItem(OPEN_CONFIGURATION_COMMAND);    
     let extensionReady = false;
     let checkovRunCancelTokenSource = new vscode.CancellationTokenSource();
+    let checkovInstallation : CheckovInstallation | null = null;
+    const checkovInstallationDir = vscode.Uri.joinPath(context.globalStorageUri, 'checkov-installation').fsPath;
 
     const resetCancelTokenSource = () => {
         checkovRunCancelTokenSource.cancel();
@@ -40,8 +42,8 @@ export function activate(context: vscode.ExtensionContext): void {
             try {
                 extensionReady = false;
                 setSyncingStatusBarItem();
-                const environment: CheckovInstallation = await installOrUpdateCheckov(logger);
-                logger.info(`Finished installing Checkov with ${environment.checkovPython}.`);
+                checkovInstallation = await installOrUpdateCheckov(logger, checkovInstallationDir);
+                logger.info(`Finished installing Checkov with ${checkovInstallation.checkovInstallationMethod}.` , { checkovPath: checkovInstallation.checkovPath });
                 setReadyStatusBarItem();
                 extensionReady = true;
             } catch(error) {
@@ -134,7 +136,13 @@ export function activate(context: vscode.ExtensionContext): void {
         try {
             setSyncingStatusBarItem();
             const filePath = fileUri ? fileUri.fsPath : editor.document.fileName;
-            const checkovResponse = await runCheckovScan(logger, extensionVersion, filePath, token, cancelToken);
+            
+            if (!checkovInstallation) {
+                logger.error('Checkov is not installed, aborting scan.');
+                return;
+            }
+            
+            const checkovResponse = await runCheckovScan(logger, checkovInstallation, extensionVersion, filePath, token, cancelToken);
             saveCheckovResult(context.workspaceState, checkovResponse.results.failedChecks);
             applyDiagnostics(editor.document, diagnostics, checkovResponse.results.failedChecks);
             checkovResponse.results.failedChecks.length > 0 ? setErrorStatusBarItem() : setPassedStatusBarItem();

@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
-import path from 'path';
-import { exec } from 'child_process';
+import { exec, ExecOptions } from 'child_process';
 import winston from 'winston';
 import { FailedCheckovCheck } from './checkovRunner';
 import { DiagnosticReferenceCode } from './diagnostics';
@@ -11,9 +10,9 @@ const extensionData = vscode.extensions.getExtension('bridgecrew.checkov');
 export const extensionVersion = extensionData ? extensionData.packageJSON.version : 'unknown';
 
 type ExecOutput = [stdout: string, stderr: string];
-export const asyncExec = async (commandToExecute: string) : Promise<ExecOutput> => {
+export const asyncExec = async (commandToExecute: string, options: ExecOptions = {}) : Promise<ExecOutput> => {
     return new Promise((resolve, reject) => {
-        exec(commandToExecute, (err, stdout, stderr) => {
+        exec(commandToExecute, { shell: 'true', ...options }, (err, stdout, stderr) => {
             if (err) {return reject(err);}
             resolve([stdout, stderr]);
         });
@@ -45,7 +44,7 @@ export const getLogger = (logFileDir: string, logFileName: string): winston.Logg
     format: winston.format.combine(
         winston.format.splat(),
         winston.format.printf(({ level, message, ...rest }) => {
-            const logError = rest.error ? { error: { ...rest.error, message: rest.error.message, stack: rest.error.stack } } : {};
+            const logError = rest.error && rest.error instanceof Error ? { error: { ...rest.error, message: rest.error.message, stack: rest.error.stack } } : {};
             const argumentsString = JSON.stringify({ ...rest, ...logError });
             return `[${level}]: ${message} ${argumentsString !== '{}' ? argumentsString : ''}`; 
         })

@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import { spawn } from 'child_process';
+import * as path from 'path';
 import { Logger } from 'winston';
+import { CheckovInstallation } from './checkovInstaller';
 
 export interface FailedCheckovCheck {
     checkId: string;
@@ -34,19 +36,31 @@ interface CheckovResponseRaw {
 
 const skipChecks = ['CKV_AWS_52'];
 
-export const runCheckovScan = (logger: Logger, extensionVersion: string, fileName: string, token: string, cancelToken: vscode.CancellationToken): Promise<CheckovResponse> => {
+const dockerMountDir = '/checkovScan';
+const getDockerRunParams = (filePath: string, extensionVersion: string) => ['run', '--tty', '--env', 'BC_SOURCE=vscode', '--env', `BC_SOURCE_VERSION=${extensionVersion}`, '--volume', `${path.dirname(filePath)}:${dockerMountDir}`, 'bridgecrew/checkov'];
+
+const cleanupStdout = (stdout: string) => stdout.replace(/.\[0m/g,''); // Clean docker run ANSI escapse chars
+
+export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInstallation, extensionVersion: string, fileName: string, token: string, cancelToken: vscode.CancellationToken): Promise<CheckovResponse> => {
     return new Promise((resolve, reject) => {
-        const checkovArguments: string[] = ['-s', '--skip-check', skipChecks.join(','), '--bc-api-key', token, '--repo-id', 'vscode/extension', '-f', `"${fileName}"`, '-o', 'json'];
-        logger.info('Running checkov', { arguments: checkovArguments.map(argument => argument === token ? '****' : argument) });
-        const ckv = spawn('checkov', checkovArguments, 
+        const { checkovInstallationMethod, checkovPath, workingDir } = checkovInstallation;
+        const dockerRunParams = checkovInstallationMethod === 'docker' ? getDockerRunParams(fileName, extensionVersion) : [];
+        const filePath = checkovInstallationMethod === 'docker' ? path.join(dockerMountDir, path.basename(fileName)) : fileName;
+        const checkovArguments: string[] = [...dockerRunParams, '-s', '--skip-check', skipChecks.join(','), '--bc-api-key', token, '--repo-id', 'vscode/extension', '-f', `"${filePath}"`, '-o', 'json'];
+        logger.info('Running checkov', { executablePath: checkovPath, arguments: checkovArguments.map(argument => argument === token ? '****' : argument) });
+        const ckv = spawn(checkovPath, checkovArguments, 
             {
                 shell: true,
-                env: { ...process.env, BC_SOURCE: 'vscode', BC_SOURCE_VERSION: extensionVersion }
+                env: { ...process.env, BC_SOURCE: 'vscode', BC_SOURCE_VERSION: extensionVersion },
+                ...(workingDir ? { cwd: workingDir } : {})
             });
+        
         let stdout = '';
 	
         ckv.stdout.on('data', data => {
-            stdout += data;
+            if (data.toString().startsWith('{') || stdout) {           
+                stdout += data;
+            }
         });
 			
         ckv.stderr.on('data', data => {
@@ -58,19 +72,24 @@ export const runCheckovScan = (logger: Logger, extensionVersion: string, fileNam
         });
 			
         ckv.on('close', code => {
-            if (cancelToken.isCancellationRequested) return reject('Cancel invoked');
-            logger.debug(`Checkov scan process exited with code ${code}`);
-            if (code !== 0) return reject(`Checkov exited with code ${code}`);
-            
-            if (stdout.startsWith('[]')) {
-                logger.debug('Got an empty reply from checkov', { reply: stdout, fileName });
-                return resolve({ results: { failedChecks: [] } });
-            }
-            const output: CheckovResponseRaw = JSON.parse(stdout);
+            try {
+                if (cancelToken.isCancellationRequested) return reject('Cancel invoked');
+                logger.debug(`Checkov scan process exited with code ${code}`);
+                if (code !== 0) return reject(`Checkov exited with code ${code}`);
+                
+                if (stdout.startsWith('[]')) {
+                    logger.debug('Got an empty reply from checkov', { reply: stdout, fileName });
+                    return resolve({ results: { failedChecks: [] } });
+                }
 
-            logger.debug('Checkov task output:', output);
-	
-            resolve(parseCheckovResponse(output));
+                const cleanStdout = cleanupStdout(stdout);
+                logger.debug('Checkov task output:', { cleanStdout });
+                const output: CheckovResponseRaw = JSON.parse(cleanStdout);
+                resolve(parseCheckovResponse(output));
+            } catch (error) {
+                logger.error('Failed to get response from Checkov.', { error });
+                reject('Failed to get response from Checkov.');
+            }
         });
 
         cancelToken.onCancellationRequested((cancelEvent) => {
