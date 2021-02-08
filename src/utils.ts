@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { exec } from 'child_process';
+import { exec, ExecOptions } from 'child_process';
 import winston from 'winston';
 import { FailedCheckovCheck } from './checkovRunner';
 import { DiagnosticReferenceCode } from './diagnostics';
@@ -10,9 +10,9 @@ const extensionData = vscode.extensions.getExtension('bridgecrew.checkov');
 export const extensionVersion = extensionData ? extensionData.packageJSON.version : 'unknown';
 
 type ExecOutput = [stdout: string, stderr: string];
-export const asyncExec = async (commandToExecute: string) : Promise<ExecOutput> => {
+export const asyncExec = async (commandToExecute: string, options: ExecOptions = {}) : Promise<ExecOutput> => {
     return new Promise((resolve, reject) => {
-        exec(commandToExecute, (err, stdout, stderr) => {
+        exec(commandToExecute, { shell: 'true', ...options }, (err, stdout, stderr) => {
             if (err) {return reject(err);}
             resolve([stdout, stderr]);
         });

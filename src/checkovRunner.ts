@@ -43,7 +43,7 @@ const cleanupStdout = (stdout: string) => stdout.replace(/.\[0m/g,''); // Clean 
 
 export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInstallation, extensionVersion: string, fileName: string, token: string, cancelToken: vscode.CancellationToken): Promise<CheckovResponse> => {
     return new Promise((resolve, reject) => {
-        const { checkovInstallationMethod, checkovPath } = checkovInstallation;
+        const { checkovInstallationMethod, checkovPath, workingDir } = checkovInstallation;
         const dockerRunParams = checkovInstallationMethod === 'docker' ? getDockerRunParams(fileName, extensionVersion) : [];
         const filePath = checkovInstallationMethod === 'docker' ? path.join(dockerMountDir, path.basename(fileName)) : fileName;
         const checkovArguments: string[] = [...dockerRunParams, '-s', '--skip-check', skipChecks.join(','), '--bc-api-key', token, '--repo-id', 'vscode/extension', '-f', `"${filePath}"`, '-o', 'json'];
@@ -51,7 +51,8 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
         const ckv = spawn(checkovPath, checkovArguments, 
             {
                 shell: true,
-                env: { ...process.env, BC_SOURCE: 'vscode', BC_SOURCE_VERSION: extensionVersion }
+                env: { ...process.env, BC_SOURCE: 'vscode', BC_SOURCE_VERSION: extensionVersion },
+                ...(workingDir ? { cwd: workingDir } : {})
             });
         
         let stdout = '';

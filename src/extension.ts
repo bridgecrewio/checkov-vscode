@@ -24,6 +24,7 @@ export function activate(context: vscode.ExtensionContext): void {
     let extensionReady = false;
     let checkovRunCancelTokenSource = new vscode.CancellationTokenSource();
     let checkovInstallation : CheckovInstallation | null = null;
+    const checkovInstallationDir = vscode.Uri.joinPath(context.globalStorageUri, 'checkov-installation').fsPath;
 
     const resetCancelTokenSource = () => {
         checkovRunCancelTokenSource.cancel();
@@ -41,7 +42,7 @@ export function activate(context: vscode.ExtensionContext): void {
             try {
                 extensionReady = false;
                 setSyncingStatusBarItem();
-                checkovInstallation = await installOrUpdateCheckov(logger);
+                checkovInstallation = await installOrUpdateCheckov(logger, checkovInstallationDir);
                 logger.info(`Finished installing Checkov with ${checkovInstallation.checkovInstallationMethod}.` , { checkovPath: checkovInstallation.checkovPath });
                 setReadyStatusBarItem();
                 extensionReady = true;

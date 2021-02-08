@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import * as path from 'path';
 import { Logger } from 'winston';
 import { asyncExec } from './utils';
@@ -31,10 +32,11 @@ const installOrUpdateCheckovWithPip3 = async (logger: Logger): Promise<string | 
     }
 };
 
-const installOrUpdateCheckovWithPipenv = async (logger: Logger): Promise<string | null> => {
+const installOrUpdateCheckovWithPipenv = async (logger: Logger, installationDir: string): Promise<string | null> => {
     try {
         logger.info('Trying to install Checkov using pipenv.');
-        await asyncExec('pipenv --python 3 install checkov');
+        fs.mkdirSync(installationDir, { recursive: true });
+        await asyncExec('pipenv --python 3 install checkov', { cwd: installationDir });
         const checkovPath = 'pipenv run checkov';
         logger.info('Checkov installed successfully using pipenv.', { checkovPath });
         return checkovPath;
@@ -61,15 +63,16 @@ type CheckovInstallationMethod = 'pip3' | 'pipenv' | 'docker';
 export interface CheckovInstallation {
     checkovInstallationMethod: CheckovInstallationMethod;
     checkovPath: string;
+    workingDir?: string;
 }
 
-export const installOrUpdateCheckov = async (logger: Logger): Promise<CheckovInstallation> => {
+export const installOrUpdateCheckov = async (logger: Logger, installationDir: string): Promise<CheckovInstallation> => {
     const dockerCheckovPath = await installOrUpdateCheckovWithDocker(logger);
     if (dockerCheckovPath) return { checkovInstallationMethod: 'docker' , checkovPath: dockerCheckovPath };
     const pip3CheckovPath = await installOrUpdateCheckovWithPip3(logger);
     if (pip3CheckovPath) return { checkovInstallationMethod: 'pip3' , checkovPath: pip3CheckovPath };
-    const pipenvCheckovPath = await installOrUpdateCheckovWithPipenv(logger);
-    if (pipenvCheckovPath) return { checkovInstallationMethod: 'pipenv' , checkovPath: pipenvCheckovPath };
+    const pipenvCheckovPath = await installOrUpdateCheckovWithPipenv(logger, installationDir);
+    if (pipenvCheckovPath) return { checkovInstallationMethod: 'pipenv' , checkovPath: pipenvCheckovPath, workingDir: installationDir };
 
     throw new Error('Could not install Checkov.');
 };
