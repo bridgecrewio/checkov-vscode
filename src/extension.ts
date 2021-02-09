@@ -41,7 +41,7 @@ export function activate(context: vscode.ExtensionContext): void {
         vscode.commands.registerCommand(INSTALL_OR_UPDATE_CHECKOV_COMMAND, async () => {
             try {
                 extensionReady = false;
-                setSyncingStatusBarItem();
+                setSyncingStatusBarItem('Updating Checkov');
                 checkovInstallation = await installOrUpdateCheckov(logger, checkovInstallationDir);
                 logger.info(`Finished installing Checkov with ${checkovInstallation.checkovInstallationMethod}.` , { checkovPath: checkovInstallation.checkovPath });
                 setReadyStatusBarItem();
@@ -134,7 +134,7 @@ export function activate(context: vscode.ExtensionContext): void {
     const runScan = debounce(async (editor: vscode.TextEditor,  token: string, cancelToken: vscode.CancellationToken, fileUri?: vscode.Uri): Promise<void> => {
         logger.info('Starting to scan.');
         try {
-            setSyncingStatusBarItem();
+            setSyncingStatusBarItem('Checkov scanning');
             const filePath = fileUri ? fileUri.fsPath : editor.document.fileName;
             
             if (!checkovInstallation) {
