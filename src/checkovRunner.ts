@@ -61,6 +61,8 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
         ckv.stdout.on('data', data => {
             if (data.toString().startsWith('{') || data.toString().startsWith('[') || stdout) {           
                 stdout += data;
+            } else {
+                logger.debug(`Log from Checkov: ${data}`);
             }
         });
 			
@@ -76,6 +78,7 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
             try {
                 if (cancelToken.isCancellationRequested) return reject('Cancel invoked');
                 logger.debug(`Checkov scan process exited with code ${code}`);
+                logger.debug('Checkov task output:', { stdout });
                 if (code !== 0) return reject(`Checkov exited with code ${code}`);
                 
                 if (stdout.startsWith('[]')) {
@@ -84,7 +87,6 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
                 }
 
                 const cleanStdout = cleanupStdout(stdout);
-                logger.debug('Checkov task output:', { cleanStdout });
                 const output: CheckovResponseRaw = JSON.parse(cleanStdout);
                 resolve(parseCheckovResponse(output));
             } catch (error) {
