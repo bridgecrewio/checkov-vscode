@@ -37,7 +37,7 @@ Open the Checkov Extension for Visual Studio Code in the [Visual Studio Markepla
 
 ### Dependencies
 
-- [Python](https://www.python.org/downloads/) >= 3.7 or [Docker](https://www.docker.com/products/docker-desktop) daemon running
+- [Python](https://www.python.org/downloads/) >= 3.7 or [Pipenv](https://docs.pipenv.org/) or [Docker](https://www.docker.com/products/docker-desktop) daemon running
 
 The Checkov extension will invoke the latest version of ```Checkov```.
 
