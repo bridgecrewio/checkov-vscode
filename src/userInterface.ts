@@ -47,8 +47,8 @@ export const setMissingConfigurationStatusBarItem = (): void => {
     statusBarItem.text = '$(exclude) Checkov';
 };
 
-export const setSyncingStatusBarItem = (): void => {
-    statusBarItem.text = '$(sync~spin) Checkov';
+export const setSyncingStatusBarItem = (text = 'Checkov'): void => {
+    statusBarItem.text = `$(sync~spin) ${text}`;
 };
 
 export const setErrorStatusBarItem = (): void => {
