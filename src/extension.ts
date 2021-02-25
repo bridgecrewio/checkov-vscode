@@ -46,7 +46,8 @@ export function activate(context: vscode.ExtensionContext): void {
                 logger.info(`Finished installing Checkov with ${checkovInstallation.checkovInstallationMethod}.` , { checkovPath: checkovInstallation.checkovPath });
                 setReadyStatusBarItem();
                 extensionReady = true;
-                vscode.commands.executeCommand(RUN_FILE_SCAN_COMMAND);
+                if (vscode.window.activeTextEditor && isSupportedFileType(vscode.window.activeTextEditor.document.fileName))
+                    vscode.commands.executeCommand(RUN_FILE_SCAN_COMMAND);
             } catch(error) {
                 setErrorStatusBarItem();
                 logger.error('Error occurred while preparing Checkov. try to reload vscode.', { error });
