@@ -13,7 +13,7 @@ const provideFixCodeActions = (workspaceState: vscode.Memento) => (document: vsc
         .reduce((prev, current) => [...prev, ...current], []);
 };
 
-const generateSkipComment = (checkId: string) => `\t# checkov:skip=${checkId}: ADD COMMENT\n` ;
+const generateSkipComment = (checkId: string) => `\t# checkov:skip=${checkId}: ADD REASON\n` ;
 
 const createCommandCodeAction = (document: vscode.TextDocument, diagnostic: vscode.Diagnostic, checkovCheck: FailedCheckovCheck): vscode.CodeAction[] => {
     const blockRange = new vscode.Range(
@@ -25,16 +25,6 @@ const createCommandCodeAction = (document: vscode.TextDocument, diagnostic: vsco
     skipEdit.insert(document.uri, document.lineAt(checkovCheck.fileLineRange[0]).range.start, generateSkipComment(checkovCheck.checkId));
     const actions: vscode.CodeAction[] = [
         {
-            title: `Learn more about - ${checkovCheck.checkName}`,
-            kind: vscode.CodeActionKind.Empty,
-            diagnostics: [diagnostic],
-            command: {
-                title: 'See more at Bridgecrew',
-                command: OPEN_EXTERNAL_COMMAND,
-                arguments: [(diagnostic.code as DiagnosticReferenceCode).target]
-            }
-        },
-        {
             title: `Generate skip comment for - ${checkovCheck.checkName}`,
             kind: vscode.CodeActionKind.QuickFix,
             diagnostics: [diagnostic],
@@ -43,6 +33,16 @@ const createCommandCodeAction = (document: vscode.TextDocument, diagnostic: vsco
             command: {
                 title: 'Generate skip comment',
                 command: REMOVE_DIAGNOSTICS_COMMAND
+            }
+        },
+        {
+            title: `Learn more about - ${checkovCheck.checkName}`,
+            kind: vscode.CodeActionKind.Empty,
+            diagnostics: [diagnostic],
+            command: {
+                title: 'See more at Bridgecrew',
+                command: OPEN_EXTERNAL_COMMAND,
+                arguments: [(diagnostic.code as DiagnosticReferenceCode).target]
             }
         }
     ];
