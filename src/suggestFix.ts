@@ -16,11 +16,6 @@ const provideFixCodeActions = (workspaceState: vscode.Memento) => (document: vsc
 const generateSkipComment = (checkId: string) => `\t# checkov:skip=${checkId}: ADD REASON\n` ;
 
 const createCommandCodeAction = (document: vscode.TextDocument, diagnostic: vscode.Diagnostic, checkovCheck: FailedCheckovCheck): vscode.CodeAction[] => {
-    const blockRange = new vscode.Range(
-        document.lineAt(checkovCheck.fileLineRange[0] - 1).range.start, 
-        document.lineAt(checkovCheck.fileLineRange[1] - 1).range.end
-    );
-
     const skipEdit: vscode.WorkspaceEdit = new vscode.WorkspaceEdit();
     skipEdit.insert(document.uri, document.lineAt(checkovCheck.fileLineRange[0]).range.start, generateSkipComment(checkovCheck.checkId));
     const actions: vscode.CodeAction[] = [
@@ -48,6 +43,10 @@ const createCommandCodeAction = (document: vscode.TextDocument, diagnostic: vsco
     ];
     
     if (checkovCheck && checkovCheck.fixedDefinition) { 
+        const blockRange = new vscode.Range(
+            document.lineAt(checkovCheck.fileLineRange[0] - 1).range.start, 
+            document.lineAt(checkovCheck.fileLineRange[1] - 1).range.end
+        );
         const fixEdit: vscode.WorkspaceEdit = new vscode.WorkspaceEdit();
         fixEdit.replace(document.uri, blockRange, checkovCheck.fixedDefinition);
     
