@@ -13,38 +13,60 @@ const provideFixCodeActions = (workspaceState: vscode.Memento) => (document: vsc
         .reduce((prev, current) => [...prev, ...current], []);
 };
 
+const generateSkipComment = (checkId: string) => `\t# checkov:skip=${checkId}: ADD COMMENT\n` ;
+
 const createCommandCodeAction = (document: vscode.TextDocument, diagnostic: vscode.Diagnostic, checkovCheck: FailedCheckovCheck): vscode.CodeAction[] => {
-    const learnMoreAction: vscode.CodeAction[] = [{
-        title: `Learn more about - ${checkovCheck.checkName}`,
-        kind: vscode.CodeActionKind.Empty,
-        diagnostics: [diagnostic],
-        command: {
-            title: 'See more at Bridgecrew',
-            command: OPEN_EXTERNAL_COMMAND,
-            arguments: [(diagnostic.code as DiagnosticReferenceCode).target]
-        }
-    }];
-    
-    const edit: vscode.WorkspaceEdit = new vscode.WorkspaceEdit();
-    if (checkovCheck && checkovCheck.fixedDefinition) { 
-        const fixRange = new vscode.Range(document.lineAt(checkovCheck.fileLineRange[0] - 1).range.start, 
-            document.lineAt(checkovCheck.fileLineRange[1] - 1).range.end);
-        edit.replace(document.uri, fixRange, checkovCheck.fixedDefinition);
-    
-        return [{
-            title: `Apply fix for - ${checkovCheck.checkName}`,
-            kind: vscode.CodeActionKind.QuickFix,
+    const blockRange = new vscode.Range(
+        document.lineAt(checkovCheck.fileLineRange[0] - 1).range.start, 
+        document.lineAt(checkovCheck.fileLineRange[1] - 1).range.end
+    );
+
+    const skipEdit: vscode.WorkspaceEdit = new vscode.WorkspaceEdit();
+    skipEdit.insert(document.uri, document.lineAt(checkovCheck.fileLineRange[0]).range.start, generateSkipComment(checkovCheck.checkId));
+    const actions: vscode.CodeAction[] = [
+        {
+            title: `Learn more about - ${checkovCheck.checkName}`,
+            kind: vscode.CodeActionKind.Empty,
             diagnostics: [diagnostic],
-            isPreferred: true,
-            edit,
             command: {
-                title: 'Apply fix',
-                command: REMOVE_DIAGNOSTICS_COMMAND
+                title: 'See more at Bridgecrew',
+                command: OPEN_EXTERNAL_COMMAND,
+                arguments: [(diagnostic.code as DiagnosticReferenceCode).target]
             }
         },
-        ...learnMoreAction];
+        {
+            title: `Generate skip comment for - ${checkovCheck.checkName}`,
+            kind: vscode.CodeActionKind.QuickFix,
+            diagnostics: [diagnostic],
+            isPreferred: false,
+            edit: skipEdit,
+            command: {
+                title: 'Generate skip comment',
+                command: REMOVE_DIAGNOSTICS_COMMAND
+            }
+        }
+    ];
+    
+    if (checkovCheck && checkovCheck.fixedDefinition) { 
+        const fixEdit: vscode.WorkspaceEdit = new vscode.WorkspaceEdit();
+        fixEdit.replace(document.uri, blockRange, checkovCheck.fixedDefinition);
+    
+        return [
+            {
+                title: `Apply fix for - ${checkovCheck.checkName}`,
+                kind: vscode.CodeActionKind.QuickFix,
+                diagnostics: [diagnostic],
+                isPreferred: true,
+                edit: fixEdit,
+                command: {
+                    title: 'Apply fix',
+                    command: REMOVE_DIAGNOSTICS_COMMAND
+                }
+            },
+            ...actions
+        ];
     }
-    return learnMoreAction;
+    return actions;
 };
 
 export const providedCodeActionKinds: vscode.CodeActionKind[] = [
