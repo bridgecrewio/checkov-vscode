@@ -20,7 +20,7 @@ export const asyncExec = async (commandToExecute: string, options: ExecOptions =
 };
 
 export const isSupportedFileType = (fileName: string, showMessage = false): boolean => {
-    if (!(fileName.endsWith('.tf') || fileName.endsWith('.yml') || fileName.endsWith('.yaml') || fileName.endsWith('.json'))) {
+    if (!(fileName.endsWith('.tf') || fileName.endsWith('.yml') || fileName.endsWith('.yaml') || fileName.endsWith('.json')|| fileName.match('Dockerfile'))) {
         showMessage && showUnsupportedFileMessage();
         return false;
     }

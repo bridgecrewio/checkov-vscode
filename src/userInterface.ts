@@ -27,7 +27,7 @@ ${logDirectoryPath}`;
 };
 
 export const showUnsupportedFileMessage = (): void => {
-    const message = 'Unsupported file type for Checkov scanning, We support [.tf, .yml, .yaml, .json] files only.';
+    const message = 'Unsupported file type for Checkov scanning, We support [Dockerfile, .tf, .yml, .yaml, .json] files only.';
     vscode.window.showWarningMessage(message);
 };
 
