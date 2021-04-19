@@ -8,20 +8,20 @@ Or contact us directly on https://slack.bridgecrew.io .
 Adding the log file will be very useful,
 You can find it here:
 ${logDirectoryPath}`;
-    
+
     vscode.window.showInformationMessage(contactUsMessage, 'Open log', 'Open issue', 'Slack us')
         .then(choice => {
             if (!choice) return;
-            
+
             if (choice === 'Open log') {
                 vscode.window.showTextDocument(vscode.Uri.joinPath(logDirectoryPath, logFileName));
                 return;
             }
 
-            const uri = 
-                choice === 'Open issue' ? vscode.Uri.parse('https://github.com/bridgecrewio/checkov-vscode') 
+            const uri =
+                choice === 'Open issue' ? vscode.Uri.parse('https://github.com/bridgecrewio/checkov-vscode')
                     : vscode.Uri.parse('https://slack.bridgecrew.io');
-            
+
             vscode.env.openExternal(uri);
         });
 };

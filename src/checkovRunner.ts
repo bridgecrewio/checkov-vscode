@@ -11,7 +11,7 @@ export interface FailedCheckovCheck {
     fileLineRange: [number, number];
     resource: string;
     guideline: string;
-    fixedDefinition?: string; 
+    fixedDefinition?: string;
 }
 
 interface CheckovResponse {
@@ -49,38 +49,38 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
         const filePath = checkovInstallationMethod === 'docker' ? convertToUnixPath(path.join(dockerMountDir, path.basename(fileName))) : fileName;
         const checkovArguments: string[] = [...dockerRunParams, '-s', '--skip-check', skipChecks.join(','), '--bc-api-key', token, '--repo-id', 'vscode/extension', '-f', `"${filePath}"`, '-o', 'json'];
         logger.info('Running checkov', { executablePath: checkovPath, arguments: checkovArguments.map(argument => argument === token ? '****' : argument) });
-        const ckv = spawn(checkovPath, checkovArguments, 
+        const ckv = spawn(checkovPath, checkovArguments,
             {
                 shell: true,
                 env: { ...process.env, BC_SOURCE: 'vscode', BC_SOURCE_VERSION: extensionVersion },
                 ...(workingDir ? { cwd: workingDir } : {})
             });
-        
+
         let stdout = '';
-	
+
         ckv.stdout.on('data', data => {
-            if (data.toString().startsWith('{') || data.toString().startsWith('[') || stdout) {           
+            if (data.toString().startsWith('{') || data.toString().startsWith('[') || stdout) {
                 stdout += data;
             } else {
                 logger.debug(`Log from Checkov: ${data}`);
             }
         });
-			
+
         ckv.stderr.on('data', data => {
             logger.warn(`Checkov stderr: ${data}`);
         });
-			
+
         ckv.on('error', (error) => {
             logger.error('Error while running Checkov', { error });
         });
-			
+
         ckv.on('close', code => {
             try {
                 if (cancelToken.isCancellationRequested) return reject('Cancel invoked');
                 logger.debug(`Checkov scan process exited with code ${code}`);
                 logger.debug('Checkov task output:', { stdout });
                 if (code !== 0) return reject(`Checkov exited with code ${code}`);
-                
+
                 if (stdout.startsWith('[]')) {
                     logger.debug('Got an empty reply from checkov', { reply: stdout, fileName });
                     return resolve({ results: { failedChecks: [] } });
@@ -105,11 +105,11 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
 const parseCheckovResponse = (rawResponse: CheckovResponseRaw): CheckovResponse => {
     return {
         results: {
-            failedChecks: rawResponse.results.failed_checks.map(rawCheck => ({ 
-                checkId: rawCheck.check_id, 
-                checkName: rawCheck.check_name, 
+            failedChecks: rawResponse.results.failed_checks.map(rawCheck => ({
+                checkId: rawCheck.check_id,
+                checkName: rawCheck.check_name,
                 fileLineRange: rawCheck.file_line_range,
-                resource: rawCheck.resource, 
+                resource: rawCheck.resource,
                 guideline: rawCheck.guideline,
                 fixedDefinition: rawCheck.fixed_definition
             }))

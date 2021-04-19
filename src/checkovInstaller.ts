@@ -16,7 +16,7 @@ const installOrUpdateCheckovWithPip3 = async (logger: Logger): Promise<string | 
     try {
         logger.info('Trying to install Checkov using pip3.');
         await asyncExec('pip3 install -U --user --verbose checkov -i https://pypi.org/simple/');
-        
+
         if (await isCheckovInstalledGlobally()) {
             const checkovPath = 'checkov';
             logger.info('Checkov installed successfully using pip3.', { checkovPath });
