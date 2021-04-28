@@ -41,15 +41,15 @@ const createCommandCodeAction = (document: vscode.TextDocument, diagnostic: vsco
             }
         }
     ];
-    
-    if (checkovCheck && checkovCheck.fixedDefinition) { 
+
+    if (checkovCheck && checkovCheck.fixedDefinition) {
         const blockRange = new vscode.Range(
-            document.lineAt(checkovCheck.fileLineRange[0] - 1).range.start, 
+            document.lineAt(checkovCheck.fileLineRange[0] - 1).range.start,
             document.lineAt(checkovCheck.fileLineRange[1] - 1).range.end
         );
         const fixEdit: vscode.WorkspaceEdit = new vscode.WorkspaceEdit();
         fixEdit.replace(document.uri, blockRange, checkovCheck.fixedDefinition);
-    
+
         return [
             {
                 title: `Apply fix for - ${checkovCheck.checkName}`,

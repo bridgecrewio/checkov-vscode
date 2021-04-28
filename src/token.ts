@@ -3,7 +3,7 @@ import { Logger } from 'winston';
 import { setMissingConfigurationStatusBarItem } from './userInterface';
 
 export const assureTokenSet = (logger: Logger, openConfigurationCommand: string): string | undefined => {
-    // Read configuration 
+    // Read configuration
     const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('checkov');
     const token = configuration.get<string>('token');
     if(!token) {

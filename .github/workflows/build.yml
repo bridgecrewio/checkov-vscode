@@ -1,18 +1,18 @@
 name: build
 
-on: 
+on:
   push:
-    branches:    
+    branches:
       - master
 
 jobs:
-  bump-version: 
+  bump-version:
     if: "!contains(github.event.head_commit.message, '[skip-ci]')"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
         with:
-          token: ${{ secrets.ACCESS_TOKEN }} 
+          token: ${{ secrets.ACCESS_TOKEN }}
       - name: Setup Node.js
         uses: actions/setup-node@v1
         with:

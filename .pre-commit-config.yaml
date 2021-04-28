@@ -1,0 +1,16 @@
+---
+# yamllint disable rule:line-length
+default_language_version:
+  python: python3.8
+repos:
+  - repo: git://github.com/pre-commit/pre-commit-hooks
+    rev: v3.4.0
+    hooks:
+      - id: check-merge-conflict
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-added-large-files
+  - repo: git://github.com/igorshubovych/markdownlint-cli
+    rev: v0.27.1
+    hooks:
+      - id: markdownlint

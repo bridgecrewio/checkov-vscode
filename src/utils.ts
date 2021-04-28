@@ -20,7 +20,7 @@ export const asyncExec = async (commandToExecute: string, options: ExecOptions =
 };
 
 export const isSupportedFileType = (fileName: string, showMessage = false): boolean => {
-    if (!(fileName.endsWith('.tf') || fileName.endsWith('.yml') || fileName.endsWith('.yaml') || fileName.endsWith('.json'))) {
+    if (!(fileName.endsWith('.tf') || fileName.endsWith('.yml') || fileName.endsWith('.yaml') || fileName.endsWith('.json')|| fileName.match('Dockerfile'))) {
         showMessage && showUnsupportedFileMessage();
         return false;
     }
@@ -35,7 +35,7 @@ export const saveCheckovResult = (state: vscode.Memento, checkovFails: FailedChe
     state.update(CHECKOV_MAP, checkovMap);
 };
 
-export const createDiagnosticKey = (diagnostic: vscode.Diagnostic): string => 
+export const createDiagnosticKey = (diagnostic: vscode.Diagnostic): string =>
     `${(diagnostic.code as DiagnosticReferenceCode).value}-${diagnostic.range.start.line + 1}`;
 export const createCheckovKey = (checkovFail: FailedCheckovCheck): string => `${checkovFail.checkId}-${checkovFail.fileLineRange[0]}`;
 
@@ -46,7 +46,7 @@ export const getLogger = (logFileDir: string, logFileName: string): winston.Logg
         winston.format.printf(({ level, message, ...rest }) => {
             const logError = rest.error && rest.error instanceof Error ? { error: { ...rest.error, message: rest.error.message, stack: rest.error.stack } } : {};
             const argumentsString = JSON.stringify({ ...rest, ...logError });
-            return `[${level}]: ${message} ${argumentsString !== '{}' ? argumentsString : ''}`; 
+            return `[${level}]: ${message} ${argumentsString !== '{}' ? argumentsString : ''}`;
         })
     ),
     transports: [
