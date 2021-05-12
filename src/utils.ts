@@ -10,17 +10,18 @@ const extensionData = vscode.extensions.getExtension('bridgecrew.checkov');
 export const extensionVersion = extensionData ? extensionData.packageJSON.version : 'unknown';
 
 type ExecOutput = [stdout: string, stderr: string];
-export const asyncExec = async (commandToExecute: string, options: ExecOptions = {}) : Promise<ExecOutput> => {
+export const asyncExec = async (commandToExecute: string, options: ExecOptions = {}): Promise<ExecOutput> => {
+    const defaultOptions: ExecOptions = { maxBuffer: 1024 * 1000 };
     return new Promise((resolve, reject) => {
-        exec(commandToExecute, options, (err, stdout, stderr) => {
-            if (err) {return reject(err);}
+        exec(commandToExecute, { ...defaultOptions, ...options }, (err, stdout, stderr) => {
+            if (err) { return reject(err); }
             resolve([stdout, stderr]);
         });
     });
 };
 
 export const isSupportedFileType = (fileName: string, showMessage = false): boolean => {
-    if (!(fileName.endsWith('.tf') || fileName.endsWith('.yml') || fileName.endsWith('.yaml') || fileName.endsWith('.json')|| fileName.match('Dockerfile'))) {
+    if (!(fileName.endsWith('.tf') || fileName.endsWith('.yml') || fileName.endsWith('.yaml') || fileName.endsWith('.json') || fileName.match('Dockerfile'))) {
         showMessage && showUnsupportedFileMessage();
         return false;
     }
