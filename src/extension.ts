@@ -8,7 +8,7 @@ import { applyDiagnostics } from './diagnostics';
 import { fixCodeActionProvider, providedCodeActionKinds } from './suggestFix';
 import { getLogger, saveCheckovResult, isSupportedFileType, extensionVersion } from './utils';
 import { initializeStatusBarItem, setErrorStatusBarItem, setPassedStatusBarItem, setReadyStatusBarItem, setSyncingStatusBarItem, showContactUsDetails } from './userInterface';
-import { assureTokenSet } from './token';
+import { assureTokenSet, getPathToCert } from './configuration';
 import { INSTALL_OR_UPDATE_CHECKOV_COMMAND, OPEN_CONFIGURATION_COMMAND, OPEN_EXTERNAL_COMMAND, REMOVE_DIAGNOSTICS_COMMAND, RUN_FILE_SCAN_COMMAND } from './commands';
 
 export const CHECKOV_MAP = 'checkovMap';
@@ -62,11 +62,12 @@ export function activate(context: vscode.ExtensionContext): void {
             }
             resetCancelTokenSource();
             const token = assureTokenSet(logger, OPEN_CONFIGURATION_COMMAND);
+            const certPath = getPathToCert();
             vscode.commands.executeCommand(REMOVE_DIAGNOSTICS_COMMAND);
             if (!fileUri && vscode.window.activeTextEditor && !isSupportedFileType(vscode.window.activeTextEditor.document.fileName, true))
                 return;
             if (!!token && vscode.window.activeTextEditor) {
-                await runScan(vscode.window.activeTextEditor, token, checkovRunCancelTokenSource.token, fileUri);
+                await runScan(vscode.window.activeTextEditor, token, certPath, checkovRunCancelTokenSource.token, fileUri);
             }
         }),
         vscode.commands.registerCommand(REMOVE_DIAGNOSTICS_COMMAND, () => {
@@ -133,7 +134,7 @@ export function activate(context: vscode.ExtensionContext): void {
             fixCodeActionProvider(context.workspaceState), { providedCodeActionKinds: providedCodeActionKinds })
     );
 
-    const runScan = debounce(async (editor: vscode.TextEditor,  token: string, cancelToken: vscode.CancellationToken, fileUri?: vscode.Uri): Promise<void> => {
+    const runScan = debounce(async (editor: vscode.TextEditor, token: string, certPath: string | undefined, cancelToken: vscode.CancellationToken, fileUri?: vscode.Uri): Promise<void> => {
         logger.info('Starting to scan.');
         try {
             setSyncingStatusBarItem('Checkov scanning');
@@ -144,7 +145,7 @@ export function activate(context: vscode.ExtensionContext): void {
                 return;
             }
 
-            const checkovResponse = await runCheckovScan(logger, checkovInstallation, extensionVersion, filePath, token, cancelToken);
+            const checkovResponse = await runCheckovScan(logger, checkovInstallation, extensionVersion, filePath, token, certPath, cancelToken);
             saveCheckovResult(context.workspaceState, checkovResponse.results.failedChecks);
             applyDiagnostics(editor.document, diagnostics, checkovResponse.results.failedChecks);
             checkovResponse.results.failedChecks.length > 0 ? setErrorStatusBarItem() : setPassedStatusBarItem();

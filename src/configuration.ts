@@ -14,3 +14,9 @@ export const assureTokenSet = (logger: Logger, openConfigurationCommand: string)
     }
     return token;
 };
+
+export const getPathToCert = (): string | undefined => {
+    const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('checkov');
+    const pathToCert = configuration.get<string>('certificate');
+    return pathToCert;
+};
