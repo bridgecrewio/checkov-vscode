@@ -44,7 +44,9 @@ The Checkov extension will invoke the latest version of ```Checkov```.
 * Sign up to a Bridgecrew Community account [here](http://bridgecrew.cloud/). If you already have an account, sign in and go to the next step.
 
 * From [Integrations](https://www.bridgecrew.cloud/integrations/api-token), select **API Token** and copy the API key.
-* In Visual Studio Code, enter your API Token in the Checkov Extension settings page.
+* In Visual Studio Code, enter your API Token in the Checkov Extension settings page.  
+* Using a custom CA certificate is possible. If needed, set the path to the certificate file in the Checkov Extension settings page.
+
 
 ### Usage
 
