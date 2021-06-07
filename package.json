@@ -58,7 +58,7 @@
         "checkov.certificate": {
           "title": "Path to CA Certificate file",
           "type": "string",
-          "markdownDescription": "[Optional] You can use custom CA-Certificate, set the path to it here.",
+          "markdownDescription": "[Optional] You can use a custom CA-Certificate, set the path to it here.",
           "readOnly": true
         }
       }
