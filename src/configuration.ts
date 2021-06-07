@@ -17,6 +17,6 @@ export const assureTokenSet = (logger: Logger, openConfigurationCommand: string)
 
 export const getPathToCert = (): string | undefined => {
     const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('checkov');
-    const pathToCert = configuration.get<string>('cert');
+    const pathToCert = configuration.get<string>('certificate');
     return pathToCert;
 };
