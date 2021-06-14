@@ -4,6 +4,7 @@ import * as path from 'path';
 import { Logger } from 'winston';
 import { CheckovInstallation } from './checkovInstaller';
 import { convertToUnixPath } from './utils';
+import { getCheckovConfigObject } from './parseCheckovConfig';
 
 export interface FailedCheckovCheck {
     checkId: string;
@@ -36,19 +37,32 @@ interface CheckovResponseRaw {
 }
 
 const skipChecks = ['CKV_AWS_52'];
-
 const dockerMountDir = '/checkovScan';
-const getDockerRunParams = (filePath: string, extensionVersion: string) => ['run', '--rm', '--tty', '--env', 'BC_SOURCE=vscode', '--env', `BC_SOURCE_VERSION=${extensionVersion}`, '--volume', `"${path.dirname(filePath)}:${dockerMountDir}"`, 'bridgecrew/checkov'];
+const configMountDir = '/checkovConfig';
+const checkovConfigFileArgs = getCheckovConfigObject();
+console.log(checkovConfigFileArgs);
+
+const getDockerRunParams = (filePath: string, extensionVersion: string, configFilePath: string | null) => {
+    return configFilePath ?
+        ['run', '--rm', '--tty', '--env', 'BC_SOURCE=vscode', '--env', `BC_SOURCE_VERSION=${extensionVersion}`,
+            '-v', `"${path.dirname(filePath)}:${dockerMountDir}"`, '-v', `"${path.dirname(configFilePath)}:${configMountDir}"`, 'bridgecrew/checkov',
+            '--config-file', `${configMountDir}/${path.basename(configFilePath)}`] :
+        ['run', '--rm', '--tty', '--env', 'BC_SOURCE=vscode', '--env', `BC_SOURCE_VERSION=${extensionVersion}`,
+            '-v', `"${path.dirname(filePath)}:${dockerMountDir}"`];
+};
 
 const cleanupStdout = (stdout: string) => stdout.replace(/.\[0m/g,''); // Clean docker run ANSI escapse chars
 
-export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInstallation, extensionVersion: string, fileName: string, token: string, certPath: string | undefined, cancelToken: vscode.CancellationToken): Promise<CheckovResponse> => {
-    return new Promise((resolve, reject) => {
+export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInstallation, extensionVersion: string, fileName: string, token: string, 
+    certPath: string | undefined, cancelToken: vscode.CancellationToken, configPath: string | null): Promise<CheckovResponse> => {
+    return new Promise((resolve, reject) => {   
         const { checkovInstallationMethod, checkovPath, workingDir } = checkovInstallation;
-        const dockerRunParams = checkovInstallationMethod === 'docker' ? getDockerRunParams(fileName, extensionVersion) : [];
+
+        const dockerRunParams = checkovInstallationMethod === 'docker' ? getDockerRunParams(fileName, extensionVersion, configPath) : [];
         const filePath = checkovInstallationMethod === 'docker' ? convertToUnixPath(path.join(dockerMountDir, path.basename(fileName))) : fileName;
         const certificateParams: string[] = certPath ? ['-ca', certPath] : [];
-        const checkovArguments: string[] = [...dockerRunParams, ...certificateParams, '-s', '--skip-check', skipChecks.join(','), '--bc-api-key', token, '--repo-id', 'vscode/extension', '-f', `"${filePath}"`, '-o', 'json'];
+        const checkovArguments: string[] = [...dockerRunParams, ...certificateParams, '-s', '--skip-check', skipChecks.join(','), '--bc-api-key', token, '--repo-id', 
+            'vscode/extension', '-f', `"${filePath}"`, '-o', 'json'];
         logger.info('Running checkov', { executablePath: checkovPath, arguments: checkovArguments.map(argument => argument === token ? '****' : argument) });
         const ckv = spawn(checkovPath, checkovArguments,
             {

@@ -1,4 +1,6 @@
 import * as vscode from 'vscode';
+import * as fs from 'fs';
+import * as yaml from 'js-yaml';
 import { exec, ExecOptions } from 'child_process';
 import winston from 'winston';
 import { FailedCheckovCheck } from './checkovRunner';
@@ -69,4 +71,20 @@ export const convertToUnixPath = (path: string): string => {
     }
 
     return path.replace(/\\/g, '/');
+};
+
+export const getWorkspacePath = (): string | void => {
+    const workspaceRootFolder = vscode.workspace ? vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri.fsPath 
+        : console.log('No folder open in workspace.'): console.log('No workspace open.');
+    return workspaceRootFolder;
+};
+
+export const readYAMLFile = (path: string): string | number | unknown | null => {
+    let data;
+    try {
+        data =  yaml.load(fs.readFileSync(path, 'utf8'));
+    } catch (error) {
+        console.log(`Error occurred reading config file: \n ${path}`);
+    }
+    return data ? data : null;
 };
