@@ -51,6 +51,10 @@ const getDockerRunParams = (filePath: string, extensionVersion: string, configFi
             '-v', `"${path.dirname(filePath)}:${dockerMountDir}"`];
 };
 
+const getpipRunParams = (configFilePath: string | null) => {
+    return configFilePath ? ['--config-file', configFilePath] : [];
+};
+
 const cleanupStdout = (stdout: string) => stdout.replace(/.\[0m/g,''); // Clean docker run ANSI escapse chars
 
 export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInstallation, extensionVersion: string, fileName: string, token: string, 
@@ -59,10 +63,11 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
         const { checkovInstallationMethod, checkovPath, workingDir } = checkovInstallation;
 
         const dockerRunParams = checkovInstallationMethod === 'docker' ? getDockerRunParams(fileName, extensionVersion, configPath) : [];
+        const pipRunParams =  ['pipenv', 'pip3'].includes(checkovInstallationMethod) ? getpipRunParams(configPath) : [];
         const filePath = checkovInstallationMethod === 'docker' ? convertToUnixPath(path.join(dockerMountDir, path.basename(fileName))) : fileName;
         const certificateParams: string[] = certPath ? ['-ca', certPath] : [];
         const checkovArguments: string[] = [...dockerRunParams, ...certificateParams, '-s', '--skip-check', skipChecks.join(','), '--bc-api-key', token, '--repo-id', 
-            'vscode/extension', '-f', `"${filePath}"`, '-o', 'json'];
+            'vscode/extension', '-f', `"${filePath}"`, '-o', 'json', ...pipRunParams];
         logger.info('Running checkov', { executablePath: checkovPath, arguments: checkovArguments.map(argument => argument === token ? '****' : argument) });
         const ckv = spawn(checkovPath, checkovArguments,
             {
