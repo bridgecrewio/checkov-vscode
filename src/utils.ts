@@ -1,6 +1,4 @@
 import * as vscode from 'vscode';
-import * as fs from 'fs';
-import * as yaml from 'js-yaml';
 import { exec, ExecOptions } from 'child_process';
 import winston from 'winston';
 import { FailedCheckovCheck } from './checkovRunner';
@@ -85,13 +83,3 @@ export const getWorkspacePath = (logger: winston.Logger): string | void => {
     return;
 };
 
-export const readYAMLFile = (path: string, logger: winston.Logger): object => {
-    let data;
-    try {
-        data =  yaml.load(fs.readFileSync(path, 'utf8'));
-    } catch (error) {
-        logger.error(`Error occurred reading config file: \n ${path}`);
-    }
-    data = typeof data === 'number' || typeof data === 'string' ? {} : data;
-    return data ? data : {};
-};
