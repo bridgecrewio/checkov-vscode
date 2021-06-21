@@ -73,18 +73,25 @@ export const convertToUnixPath = (path: string): string => {
     return path.replace(/\\/g, '/');
 };
 
-export const getWorkspacePath = (): string | void => {
-    const workspaceRootFolder = vscode.workspace ? vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri.fsPath 
-        : console.log('No folder open in workspace.'): console.log('No workspace open.');
-    return workspaceRootFolder;
+export const getWorkspacePath = (logger: winston.Logger): string | void => {
+    if(vscode.workspace) {
+        if(vscode.workspace.workspaceFolders) {
+            return vscode.workspace.workspaceFolders[0].uri.fsPath;
+        } else {
+            logger.warn('No folder open in workspace.');
+        }
+    } 
+    logger.warn('No workspace open.');
+    return;
 };
 
-export const readYAMLFile = (path: string): string | number | unknown | null => {
+export const readYAMLFile = (path: string, logger: winston.Logger): object => {
     let data;
     try {
         data =  yaml.load(fs.readFileSync(path, 'utf8'));
     } catch (error) {
-        console.log(`Error occurred reading config file: \n ${path}`);
+        logger.error(`Error occurred reading config file: \n ${path}`);
     }
-    return data ? data : null;
+    data = typeof data === 'number' || typeof data === 'string' ? {} : data;
+    return data ? data : {};
 };

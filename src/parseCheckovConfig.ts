@@ -1,15 +1,11 @@
 import * as path from 'path';
 import { existsSync } from 'fs';
-import { getWorkspacePath, readYAMLFile } from './utils';
+import { getWorkspacePath } from './utils';
+import { Logger } from 'winston';
 
-export const getCheckovConfigObject = (): string | number | unknown | null => {
-    // check if config file exists
-    const configFilePath = getConfigFilePath(); 
-    return configFilePath ? readYAMLFile(configFilePath) : null ;
-};
 
-export const getConfigFilePath = (): string | null => {
-    const workspacePath = getWorkspacePath();
+export const getConfigFilePath = (logger: Logger): string | null => {
+    const workspacePath = getWorkspacePath(logger);
     if (workspacePath) {
         const paths =  [path.join(workspacePath, '.checkov.yml'), path.join(workspacePath, '.checkov.yaml')];
         for (const p of paths) {
@@ -19,9 +15,5 @@ export const getConfigFilePath = (): string | null => {
     } else return null;
 };
 
-export const serializeChecovConfig = (checkovConfigObject: string | number | unknown | null): string | number | unknown => {
-    console.log(checkovConfigObject);
-    return;
-};
 
 

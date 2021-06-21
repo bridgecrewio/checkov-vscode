@@ -140,7 +140,7 @@ export function activate(context: vscode.ExtensionContext): void {
         try {
             setSyncingStatusBarItem('Checkov scanning');
             const filePath = fileUri ? fileUri.fsPath : editor.document.fileName;
-            const configPath = getConfigFilePath();
+            const configPath = getConfigFilePath(logger);
 
             if (!checkovInstallation) {
                 logger.error('Checkov is not installed, aborting scan.');
