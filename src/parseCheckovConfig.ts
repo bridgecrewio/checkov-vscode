@@ -1,19 +1,18 @@
 import * as path from 'path';
 import { existsSync } from 'fs';
-import { getWorkspacePath } from './utils';
 import { Logger } from 'winston';
+import { getWorkspacePath } from './utils';
 
 
 export const getConfigFilePath = (logger: Logger): string | null => {
     const workspacePath = getWorkspacePath(logger);
     if (workspacePath) {
         const paths =  [path.join(workspacePath, '.checkov.yml'), path.join(workspacePath, '.checkov.yaml')];
-        for (const p of paths) {
-            if(existsSync(p)) return p;
+        for (const path of paths) {
+            if(existsSync(path)) return path;
         }
-        return null;
-    } else return null;
+    }
+    return null;
 };
-
 
 
