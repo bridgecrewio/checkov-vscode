@@ -10,6 +10,7 @@ import { getLogger, saveCheckovResult, isSupportedFileType, extensionVersion } f
 import { initializeStatusBarItem, setErrorStatusBarItem, setPassedStatusBarItem, setReadyStatusBarItem, setSyncingStatusBarItem, showContactUsDetails } from './userInterface';
 import { assureTokenSet, getPathToCert } from './configuration';
 import { INSTALL_OR_UPDATE_CHECKOV_COMMAND, OPEN_CONFIGURATION_COMMAND, OPEN_EXTERNAL_COMMAND, REMOVE_DIAGNOSTICS_COMMAND, RUN_FILE_SCAN_COMMAND } from './commands';
+import { getConfigFilePath } from './parseCheckovConfig';
 
 export const CHECKOV_MAP = 'checkovMap';
 const logFileName = 'checkov.log';
@@ -139,13 +140,14 @@ export function activate(context: vscode.ExtensionContext): void {
         try {
             setSyncingStatusBarItem('Checkov scanning');
             const filePath = fileUri ? fileUri.fsPath : editor.document.fileName;
+            const configPath = getConfigFilePath(logger);
 
             if (!checkovInstallation) {
                 logger.error('Checkov is not installed, aborting scan.');
                 return;
             }
 
-            const checkovResponse = await runCheckovScan(logger, checkovInstallation, extensionVersion, filePath, token, certPath, cancelToken);
+            const checkovResponse = await runCheckovScan(logger, checkovInstallation, extensionVersion, filePath, token, certPath, cancelToken, configPath);
             saveCheckovResult(context.workspaceState, checkovResponse.results.failedChecks);
             applyDiagnostics(editor.document, diagnostics, checkovResponse.results.failedChecks);
             checkovResponse.results.failedChecks.length > 0 ? setErrorStatusBarItem() : setPassedStatusBarItem();

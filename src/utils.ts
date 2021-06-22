@@ -70,3 +70,16 @@ export const convertToUnixPath = (path: string): string => {
 
     return path.replace(/\\/g, '/');
 };
+
+export const getWorkspacePath = (logger: winston.Logger): string | void => {
+    if(vscode.workspace) {
+        if(vscode.workspace.workspaceFolders) {
+            return vscode.workspace.workspaceFolders[0].uri.fsPath;
+        } else {
+            logger.warn('No folder open in workspace.');
+        }
+    } 
+    logger.warn('No workspace open.');
+    return;
+};
+
