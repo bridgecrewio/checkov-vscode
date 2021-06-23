@@ -44,7 +44,7 @@ const getDockerRunParams = (filePath: string, extensionVersion: string, configFi
             '-v', `"${path.dirname(filePath)}:${dockerMountDir}"`, '-v', `"${path.dirname(configFilePath)}:${configMountDir}"`, 'bridgecrew/checkov',
             '--config-file', `${configMountDir}/${path.basename(configFilePath)}`] :
         ['run', '--rm', '--tty', '--env', 'BC_SOURCE=vscode', '--env', `BC_SOURCE_VERSION=${extensionVersion}`,
-            '-v', `"${path.dirname(filePath)}:${dockerMountDir}"`];
+            '-v', `"${path.dirname(filePath)}:${dockerMountDir}"`, 'bridgecrew/checkov'];
 };
 
 const getpipRunParams = (configFilePath: string | null) => {
