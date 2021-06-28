@@ -23,7 +23,7 @@ const installOrUpdateCheckovWithPip3 = async (logger: Logger): Promise<string | 
             return checkovPath;
         }
 
-        const [pythonUserBaseOutput] = await asyncExec('python3 -c \"import site; print(site.USER_BASE)\"');
+        const [pythonUserBaseOutput] = await asyncExec('python3 -c "import site; print(site.USER_BASE)"');
         const checkovPath = path.join(pythonUserBaseOutput.trim(), 'bin', 'checkov');
         return checkovPath;
     } catch (error) {
