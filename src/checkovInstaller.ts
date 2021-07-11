@@ -36,7 +36,7 @@ const installOrUpdateCheckovWithPipenv = async (logger: Logger, installationDir:
     try {
         logger.info('Trying to install Checkov using pipenv.');
         fs.mkdirSync(installationDir, { recursive: true });
-        await asyncExec('pipenv --python 3 install checkov', { cwd: installationDir });
+        await asyncExec('pipenv --python 3 install checkov~=2.0.0', { cwd: installationDir });
         const checkovPath = 'pipenv run checkov';
         logger.info('Checkov installed successfully using pipenv.', { checkovPath });
         return checkovPath;
