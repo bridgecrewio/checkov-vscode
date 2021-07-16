@@ -63,7 +63,7 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
         const filePath = checkovInstallationMethod === 'docker' ? convertToUnixPath(path.join(dockerMountDir, path.basename(fileName))) : fileName;
         const certificateParams: string[] = certPath ? ['-ca', certPath] : [];
         const checkovArguments: string[] = [...dockerRunParams, ...certificateParams, '-s', '--bc-api-key', token, '--repo-id', 
-            'vscode/extension', '-f', `"${filePath}"`, '--skip-framework', 'secrets', '-o', 'json', ...pipRunParams];
+            'vscode/extension', '-f', `"${filePath}"`, '-o', 'json', ...pipRunParams];
         logger.info('Running checkov', { executablePath: checkovPath, arguments: checkovArguments.map(argument => argument === token ? '****' : argument) });
         const ckv = spawn(checkovPath, checkovArguments,
             {
@@ -119,9 +119,19 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
 };
 
 const parseCheckovResponse = (rawResponse: CheckovResponseRaw): CheckovResponse => {
+
+    let failedChecks: FailedCheckovCheckRaw[];
+
+    if (Array.isArray(rawResponse)) {
+        failedChecks = rawResponse.reduce((res, val) => res.concat(val.results.failed_checks), []);
+    }
+    else {
+        failedChecks = rawResponse.results.failed_checks;
+    }
+
     return {
         results: {
-            failedChecks: rawResponse.results.failed_checks.map(rawCheck => ({
+            failedChecks: failedChecks.map(rawCheck => ({
                 checkId: rawCheck.check_id,
                 checkName: rawCheck.check_name,
                 fileLineRange: rawCheck.file_line_range,
