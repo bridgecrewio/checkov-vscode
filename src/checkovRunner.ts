@@ -65,7 +65,7 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
         const certificateParams: string[] = certPath ? ['-ca', certPath] : [];
         const bcIdParam: string[] = useBcIds ? ['--output-bc-ids'] : [];
         const checkovArguments: string[] = [...dockerRunParams, ...certificateParams, ...bcIdParam, '-s', '--bc-api-key', token, '--repo-id', 
-            'vscode/extension', '-f', `"${filePath}"`, '--skip-framework', 'secrets', '-o', 'json', ...pipRunParams];
+            'vscode/extension', '-f', `"${filePath}"`, '-o', 'json', ...pipRunParams];
         logger.info('Running checkov', { executablePath: checkovPath, arguments: checkovArguments.map(argument => argument === token ? '****' : argument) });
         const ckv = spawn(checkovPath, checkovArguments,
             {
