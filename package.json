@@ -60,6 +60,12 @@
           "type": "string",
           "markdownDescription": "[Optional] You can use a custom CA-Certificate, set the path to it here.",
           "readOnly": true
+        },
+        "checkov.useBridgecrewIDs": {
+          "title": "Use Bridgecrew platform IDs",
+          "type": "boolean",
+          "markdownDescription": "Whether to use Bridgecrew platform IDs (BC_...) instead of Checkov IDs (CKV_...)",
+          "readOnly": true
         }
       }
     }
