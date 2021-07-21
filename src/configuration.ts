@@ -20,3 +20,9 @@ export const getPathToCert = (): string | undefined => {
     const pathToCert = configuration.get<string>('certificate');
     return pathToCert;
 };
+
+export const getUseBcIds = (): boolean | undefined => {
+    const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('checkov');
+    const useBcIds = configuration.get<boolean>('useBridgecrewIDs', false);
+    return useBcIds;
+};
