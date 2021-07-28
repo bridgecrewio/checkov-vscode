@@ -1,6 +1,9 @@
 import * as vscode from 'vscode';
 import { Logger } from 'winston';
 import { setMissingConfigurationStatusBarItem } from './userInterface';
+import * as semver from 'semver';
+
+const minCheckovVersion = '2.0.0';
 
 export const assureTokenSet = (logger: Logger, openConfigurationCommand: string): string | undefined => {
     // Read configuration
@@ -34,20 +37,26 @@ export const getAutoUpdate = (): boolean => {
 };
 
 export const getCheckovVersion = (): string | undefined => {
-    // do some normalization: trim, remove a leading 'v', return null instead of empty string
-    // e.g., 'v2.0.123' => '2.0.123'; '' => null; ' ' => null
 
     const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('checkov');
-    let checkovVersion = configuration.get<string | undefined>('checkovVersion', undefined);
+    const checkovVersion = configuration.get<string>('checkovVersion', 'latest').trim().toLowerCase();
 
-    if (!checkovVersion || !checkovVersion.trim()) {
-        return undefined;
+    if (checkovVersion === 'latest') {
+        return checkovVersion;
+    } else {
+        if (!semver.valid(checkovVersion)) {
+            throw Error(`Invalid checkov version: ${checkovVersion}`);
+        }
+        
+        const clean = semver.clean(checkovVersion);
+        if (!clean) {
+            throw Error(`Invalid checkov version: ${checkovVersion}`);
+        }
+
+        if (!semver.satisfies(checkovVersion, `>=${minCheckovVersion}`)) {
+            throw Error(`Invalid checkov version: ${checkovVersion} (must be >=${minCheckovVersion})`);
+        }
+
+        return clean;
     }
-
-    checkovVersion = checkovVersion.trim();
-    if (checkovVersion.startsWith('v')) {
-        checkovVersion = checkovVersion.substring(1);
-    }
-
-    return checkovVersion;
 };

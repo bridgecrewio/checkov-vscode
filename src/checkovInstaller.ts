@@ -4,8 +4,6 @@ import { Logger } from 'winston';
 import { getAutoUpdate, getCheckovVersion } from './configuration';
 import { asyncExec, runVersionCommand } from './utils';
 
-export const minCheckovVersion = '2.0.0';
-
 const isCheckovInstalledGlobally = async () => {
     try {
         await asyncExec('checkov --version');
