@@ -1,6 +1,5 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import * as vscode from 'vscode';
 import { Logger } from 'winston';
 import { getAutoUpdate, getCheckovVersion } from './configuration';
 import { asyncExec, runVersionCommand } from './utils';
