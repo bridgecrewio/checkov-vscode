@@ -149,18 +149,14 @@ const installOrUpdateCheckovWithDocker = async (logger: Logger, autoUpdate: bool
             // This command will pull latest if this is the first time run, otherwise it will use what's there without updating it
             // This is the best way to validate that we have a runnable checkov image using docker
             await asyncExec('docker run bridgecrew/checkov:latest -v');
-            const checkovPath = 'docker';
-            logger.info('Checkov installed successfully using Docker.', { checkovPath });
-            return checkovPath;
-            
         } else {
             const tag = checkovVersion || 'latest';
             logger.debug(`Attempting to pull docker bridgecrew/checkov:${tag}`);
             await asyncExec(`docker pull bridgecrew/checkov:${tag}`);
-            const checkovPath = 'docker';
-            logger.info('Checkov installed successfully using Docker.', { checkovPath });
-            return checkovPath;
         }
+        const checkovPath = 'docker';
+        logger.info('Checkov installed successfully using Docker.', { checkovPath });
+        return checkovPath;
     } catch (error) {
         logger.error('Failed to install or update Checkov using Docker. Error:', { error });
         return null;
