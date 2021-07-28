@@ -51,7 +51,7 @@ export function activate(context: vscode.ExtensionContext): void {
                     vscode.commands.executeCommand(RUN_FILE_SCAN_COMMAND);
             } catch(error) {
                 setErrorStatusBarItem();
-                logger.error('Error occurred while preparing Checkov. try to reload vscode.', { error });
+                logger.error('Error occurred while preparing Checkov. Verify your settings, or try to reload vscode.', { error });
                 showContactUsDetails(context.logUri, logFileName);
             }
         }),

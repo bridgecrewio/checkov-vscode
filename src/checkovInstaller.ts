@@ -189,13 +189,13 @@ export const installOrUpdateCheckov = async (logger: Logger, installationDir: st
 
     let installation: CheckovInstallation | null = null;
 
-    // const dockerCheckovPath = await installOrUpdateCheckovWithDocker(logger, autoUpdate, checkovVersion);
-    // if (dockerCheckovPath) installation = { checkovInstallationMethod: 'docker' , checkovPath: dockerCheckovPath, version: checkovVersion };
+    const dockerCheckovPath = await installOrUpdateCheckovWithDocker(logger, autoUpdate, checkovVersion);
+    if (dockerCheckovPath) installation = { checkovInstallationMethod: 'docker' , checkovPath: dockerCheckovPath, version: checkovVersion };
 
-    // if (!installation) {
-    //     const pip3CheckovPath = await installOrUpdateCheckovWithPip3(logger, autoUpdate, checkovVersion);
-    //     if (pip3CheckovPath) installation = { checkovInstallationMethod: 'pip3' , checkovPath: pip3CheckovPath };
-    // }
+    if (!installation) {
+        const pip3CheckovPath = await installOrUpdateCheckovWithPip3(logger, autoUpdate, checkovVersion);
+        if (pip3CheckovPath) installation = { checkovInstallationMethod: 'pip3' , checkovPath: pip3CheckovPath };
+    }
 
     if (!installation) {
         const pipenvCheckovPath = await installOrUpdateCheckovWithPipenv(logger, installationDir, autoUpdate, checkovVersion);
