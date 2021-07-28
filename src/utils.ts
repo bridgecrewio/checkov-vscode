@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { exec, ExecOptions } from 'child_process';
+import { exec, ExecOptions, spawn } from 'child_process';
 import winston from 'winston';
 import { FailedCheckovCheck } from './checkovRunner';
 import { DiagnosticReferenceCode } from './diagnostics';
@@ -83,3 +83,12 @@ export const getWorkspacePath = (logger: winston.Logger): string | void => {
     return;
 };
 
+export const runVersionCommand = (logger: winston.Logger, checkovPath: string, workingDir: string | undefined): void => {
+    const versionCmd = spawn(checkovPath, ['-v'], { shell: true, cwd: workingDir });
+    versionCmd.stdout.on('data', data => {
+        logger.info(`checkov version: ${data}`);
+    });
+    versionCmd.stderr.on('data', data => {
+        logger.warn(`Got stderr output when testing checkov version: ${data}`);
+    });
+};

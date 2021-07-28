@@ -66,6 +66,19 @@
           "type": "boolean",
           "markdownDescription": "Whether to use Bridgecrew platform IDs (BC_...) instead of Checkov IDs (CKV_...)",
           "readOnly": true
+        },
+        "checkov.autoUpdateCheckov": {
+          "title": "Auto-update checkov",
+          "type": "boolean",
+          "markdownDescription": "Whether to pull the latest Checkov version before scanning. This option is ignored if a version is specified below. If unchecked, then use whatever version is currently installed or specified below. After changing this option, be sure to run the 'Install or Update Checkov' command.",
+          "readOnly": true,
+          "default": true
+        },
+        "checkov.checkovVersion": {
+          "title": "Checkov version",
+          "type": "string",
+          "markdownDescription": "The checkov version to use (e.g., 2.0.123). If specified, then auto-update is ignored. After changing this option, be sure to run the 'Install or Update Checkov' command.",
+          "readOnly": true
         }
       }
     }

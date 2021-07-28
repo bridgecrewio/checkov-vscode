@@ -26,3 +26,28 @@ export const getUseBcIds = (): boolean | undefined => {
     const useBcIds = configuration.get<boolean>('useBridgecrewIDs', false);
     return useBcIds;
 };
+
+export const getAutoUpdate = (): boolean => {
+    const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('checkov');
+    const autoUpdate = configuration.get<boolean>('autoUpdateCheckov', false);
+    return autoUpdate;
+};
+
+export const getCheckovVersion = (): string | undefined => {
+    // do some normalization: trim, remove a leading 'v', return null instead of empty string
+    // e.g., 'v2.0.123' => '2.0.123'; '' => null; ' ' => null
+
+    const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('checkov');
+    let checkovVersion = configuration.get<string | undefined>('checkovVersion', undefined);
+
+    if (!checkovVersion || !checkovVersion.trim()) {
+        return undefined;
+    }
+
+    checkovVersion = checkovVersion.trim();
+    if (checkovVersion.startsWith('v')) {
+        checkovVersion = checkovVersion.substring(1);
+    }
+
+    return checkovVersion;
+};
