@@ -43,8 +43,7 @@ const installOrUpdateCheckovWithPipenv = async (logger: Logger, installationDir:
     try {
         fs.mkdirSync(installationDir, { recursive: true });
 
-        const version = checkovVersion ? `==${checkovVersion}` : '~=2.0.0';
-        const command = `pipenv --python 3 install checkov${version}`;
+        const command = `pipenv --python 3 install checkov${checkovVersion ? `==${checkovVersion}` : '~=2.0.0'}`;
         logger.debug('Testing pipenv installation with command: ', command);
         await asyncExec(command, { cwd: installationDir });
 
