@@ -48,6 +48,10 @@
       {
         "command": "checkov.about-checkov",
         "title": "About Checkov"
+      },
+      {
+        "command": "checkov.open-log",
+        "title": "Open Checkov Log"
       }
     ],
     "configuration": {

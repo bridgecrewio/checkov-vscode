@@ -9,7 +9,7 @@ import { fixCodeActionProvider, providedCodeActionKinds } from './suggestFix';
 import { getLogger, saveCheckovResult, isSupportedFileType, extensionVersion, runVersionCommand } from './utils';
 import { initializeStatusBarItem, setErrorStatusBarItem, setPassedStatusBarItem, setReadyStatusBarItem, setSyncingStatusBarItem, showAboutCheckovMessage, showContactUsDetails } from './userInterface';
 import { assureTokenSet, getCheckovVersion, getPathToCert, getUseBcIds } from './configuration';
-import { GET_INSTALLATION_DETAILS_COMMAND, INSTALL_OR_UPDATE_CHECKOV_COMMAND, OPEN_CONFIGURATION_COMMAND, OPEN_EXTERNAL_COMMAND, REMOVE_DIAGNOSTICS_COMMAND, RUN_FILE_SCAN_COMMAND } from './commands';
+import { GET_INSTALLATION_DETAILS_COMMAND, INSTALL_OR_UPDATE_CHECKOV_COMMAND, OPEN_CHECKOV_LOG, OPEN_CONFIGURATION_COMMAND, OPEN_EXTERNAL_COMMAND, REMOVE_DIAGNOSTICS_COMMAND, RUN_FILE_SCAN_COMMAND } from './commands';
 import { getConfigFilePath } from './parseCheckovConfig';
 
 export const CHECKOV_MAP = 'checkovMap';
@@ -92,6 +92,9 @@ export function activate(context: vscode.ExtensionContext): void {
                 await showAboutCheckovMessage(checkovInstallation.version, checkovInstallation.checkovInstallationMethod);
             }
         }),
+        vscode.commands.registerCommand(OPEN_CHECKOV_LOG, async () => {
+            vscode.window.showTextDocument(vscode.Uri.joinPath(context.logUri, logFileName));
+        })
     );
 
     vscode.commands.executeCommand(INSTALL_OR_UPDATE_CHECKOV_COMMAND);
