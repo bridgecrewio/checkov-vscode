@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { exec, ExecOptions, spawn } from 'child_process';
+import { exec, ExecOptions } from 'child_process';
 import winston from 'winston';
 import { FailedCheckovCheck } from './checkovRunner';
 import { DiagnosticReferenceCode } from './diagnostics';
@@ -83,12 +83,10 @@ export const getWorkspacePath = (logger: winston.Logger): string | void => {
     return;
 };
 
-export const runVersionCommand = (logger: winston.Logger, checkovPath: string, workingDir: string | undefined): void => {
-    const versionCmd = spawn(checkovPath, ['-v'], { shell: true, cwd: workingDir });
-    versionCmd.stdout.on('data', data => {
-        logger.info(`checkov version: ${data}`);
-    });
-    versionCmd.stderr.on('data', data => {
-        logger.warn(`Got stderr output when testing checkov version: ${data}`);
-    });
+export const runVersionCommand = async (logger: winston.Logger, checkovPath: string, checkovVersion: string | undefined, workingDir: string | undefined): Promise<string> => {
+    const command = checkovPath === 'docker' ? `docker run bridgecrew/checkov:${checkovVersion} -v` : `${checkovPath} -v`;
+    logger.debug(`Version command: ${command}`);
+    const resp = await asyncExec(command, { ...(workingDir ? { cwd: workingDir } : {}) });
+    logger.debug(`Response from version command: ${resp[0]}`);
+    return resp[0].trim();
 };

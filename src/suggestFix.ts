@@ -5,7 +5,7 @@ import { DiagnosticReferenceCode } from './diagnostics';
 import { CHECKOV_MAP } from './extension';
 import { createDiagnosticKey } from './utils';
 
-const provideFixCodeActions = (workspaceState: vscode.Memento) => (document: vscode.TextDocument, range: vscode.Range | vscode.Selection, context: vscode.CodeActionContext, token: vscode.CancellationToken): vscode.CodeAction[] => {
+const provideFixCodeActions = (workspaceState: vscode.Memento) => (document: vscode.TextDocument, range: vscode.Range | vscode.Selection, context: vscode.CodeActionContext): vscode.CodeAction[] => {
     // for each diagnostic entry that has the matching `code`, create a code action command
     const checkovMap = workspaceState.get<Record<string, FailedCheckovCheck>>(CHECKOV_MAP) || {};
     return context.diagnostics

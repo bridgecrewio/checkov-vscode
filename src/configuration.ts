@@ -35,8 +35,8 @@ export const getCheckovVersion = (): string => {
     const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('checkov');
     const checkovVersion = configuration.get<string>('checkovVersion', 'latest').trim().toLowerCase();
 
-    if (checkovVersion === 'latest') {
-        return checkovVersion;
+    if (checkovVersion === '' || checkovVersion === 'latest') {
+        return 'latest';
     } else {
         if (!semver.valid(checkovVersion)) {
             throw Error(`Invalid checkov version: ${checkovVersion}`);

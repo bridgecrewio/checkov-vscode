@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { extensionVersion } from './utils';
 
 export const showContactUsDetails = (logDirectoryPath: vscode.Uri, logFileName: string): void => {
     const contactUsMessage = `
@@ -31,6 +32,11 @@ export const showUnsupportedFileMessage = (): void => {
     vscode.window.showWarningMessage(message);
 };
 
+export const showAboutCheckovMessage = async (version: string, installationMethod: string): Promise<void> => {
+    const message = `Checkov CLI version: ${version}; Installation method: ${installationMethod}; Extension version: ${extensionVersion}`;
+    vscode.window.showInformationMessage(message);
+};
+
 export const statusBarItem: vscode.StatusBarItem = vscode.window.createStatusBarItem();
 
 export const initializeStatusBarItem = (onClickCommand: string): void  => {
@@ -39,8 +45,8 @@ export const initializeStatusBarItem = (onClickCommand: string): void  => {
     statusBarItem.show();
 };
 
-export const setReadyStatusBarItem = (): void => {
-    statusBarItem.text = '$(gear) Checkov';
+export const setReadyStatusBarItem = (version: string | undefined): void => {
+    statusBarItem.text = version ? `$(gear) Checkov - v${version}` : '$(gear) Checkov';
 };
 
 export const setMissingConfigurationStatusBarItem = (): void => {

@@ -39,11 +39,15 @@
       },
       {
         "command": "checkov.install-or-update-checkov",
-        "title": "Install Or Update Checkov"
+        "title": "Install or Update Checkov"
       },
       {
         "command": "checkov.configuration.open",
-        "title": "Open settings for Checkov extension"
+        "title": "Open Checkov Settings"
+      },
+      {
+        "command": "checkov.about-checkov",
+        "title": "About Checkov"
       }
     ],
     "configuration": {
@@ -70,7 +74,7 @@
         "checkov.checkovVersion": {
           "title": "Checkov version",
           "type": "string",
-          "markdownDescription": "The checkov version to use (e.g., 2.0.123). Enter 'latest' or leave blank to always use the latest version. Be sure to run the 'Install or Update Checkov' command after changing this value. Use the 'Get Checkov Installation Details' to view the current version.",
+          "markdownDescription": "The Checkov scanner version to use (e.g., 2.0.123). Enter 'latest' or leave blank to always use the latest version. Be sure to run the 'Install or Update Checkov' command after changing this value. Use the 'About Checkov' to view the current version.",
           "readOnly": true
         }
       }

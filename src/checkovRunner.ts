@@ -57,7 +57,7 @@ const getpipRunParams = (configFilePath: string | null) => {
 const cleanupStdout = (stdout: string) => stdout.replace(/.\[0m/g,''); // Clean docker run ANSI escapse chars
 
 export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInstallation, extensionVersion: string, fileName: string, token: string, 
-    certPath: string | undefined, useBcIds: boolean | undefined, cancelToken: vscode.CancellationToken, configPath: string | null): Promise<CheckovResponse> => {
+    certPath: string | undefined, useBcIds: boolean | undefined, cancelToken: vscode.CancellationToken, configPath: string | null, checkovVersion: string): Promise<CheckovResponse> => {
     return new Promise((resolve, reject) => {   
         const { checkovInstallationMethod, checkovPath, workingDir } = checkovInstallation;
 
@@ -71,7 +71,7 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
         logger.info('Running checkov:');
         logger.info(`${checkovPath} ${checkovArguments.map(argument => argument === token ? '****' : argument).join(' ')}`);
         
-        runVersionCommand(logger, checkovPath, checkovInstallation.workingDir);
+        runVersionCommand(logger, checkovPath, checkovVersion, checkovInstallation.workingDir);
         
         const ckv = spawn(checkovPath, checkovArguments,
             {

@@ -1,7 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { Logger } from 'winston';
-import { getCheckovVersion } from './configuration';
 import { asyncExec } from './utils';
 
 const isCheckovInstalledGlobally = async () => {
@@ -81,9 +80,7 @@ export interface CheckovInstallation {
     version?: string;
 }
 
-export const installOrUpdateCheckov = async (logger: Logger, installationDir: string): Promise<CheckovInstallation> => {
-    const checkovVersion = getCheckovVersion();
-
+export const installOrUpdateCheckov = async (logger: Logger, installationDir: string, checkovVersion: string): Promise<CheckovInstallation> => {
     const dockerCheckovPath = await installOrUpdateCheckovWithDocker(logger, checkovVersion);
     if (dockerCheckovPath) return { checkovInstallationMethod: 'docker' , checkovPath: dockerCheckovPath };
     const pip3CheckovPath = await installOrUpdateCheckovWithPip3(logger, checkovVersion);
