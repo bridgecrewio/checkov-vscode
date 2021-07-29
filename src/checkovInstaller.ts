@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Logger } from 'winston';
 import { getCheckovVersion } from './configuration';
-import { asyncExec, runVersionCommand } from './utils';
+import { asyncExec } from './utils';
 
 const isCheckovInstalledGlobally = async () => {
     try {

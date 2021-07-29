@@ -90,6 +90,7 @@
     "@types/js-yaml": "^4.0.1",
     "@types/lodash": "^4.14.168",
     "@types/mocha": "^8.0.0",
+    "@types/semver": "^7.3.8",
     "@types/node": "^12.11.7",
     "@types/vscode": "^1.48.2",
     "@typescript-eslint/eslint-plugin": "^4.1.1",
@@ -101,7 +102,6 @@
     "vscode-test": "^1.4.0"
   },
   "dependencies": {
-    "@types/semver": "^7.3.8",
     "lodash": "^4.17.21",
     "semver": "^7.3.5",
     "winston": "^3.3.3"
