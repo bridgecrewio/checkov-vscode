@@ -6,7 +6,7 @@ import { CheckovInstallation, installOrUpdateCheckov } from './checkovInstaller'
 import { runCheckovScan } from './checkovRunner';
 import { applyDiagnostics } from './diagnostics';
 import { fixCodeActionProvider, providedCodeActionKinds } from './suggestFix';
-import { getLogger, saveCheckovResult, isSupportedFileType, extensionVersion } from './utils';
+import { getLogger, saveCheckovResult, isSupportedFileType, extensionVersion, runVersionCommand } from './utils';
 import { initializeStatusBarItem, setErrorStatusBarItem, setPassedStatusBarItem, setReadyStatusBarItem, setSyncingStatusBarItem, showContactUsDetails } from './userInterface';
 import { assureTokenSet, getPathToCert, getUseBcIds } from './configuration';
 import { INSTALL_OR_UPDATE_CHECKOV_COMMAND, OPEN_CONFIGURATION_COMMAND, OPEN_EXTERNAL_COMMAND, REMOVE_DIAGNOSTICS_COMMAND, RUN_FILE_SCAN_COMMAND } from './commands';
@@ -44,7 +44,8 @@ export function activate(context: vscode.ExtensionContext): void {
                 extensionReady = false;
                 setSyncingStatusBarItem('Updating Checkov');
                 checkovInstallation = await installOrUpdateCheckov(logger, checkovInstallationDir);
-                logger.info(`Finished installing Checkov with ${checkovInstallation.checkovInstallationMethod}.` , { checkovPath: checkovInstallation.checkovPath });
+                logger.info('Checkov installation: ', checkovInstallation);
+                runVersionCommand(logger, checkovInstallation.checkovPath, checkovInstallation.workingDir);
                 setReadyStatusBarItem();
                 extensionReady = true;
                 if (vscode.window.activeTextEditor && isSupportedFileType(vscode.window.activeTextEditor.document.fileName))

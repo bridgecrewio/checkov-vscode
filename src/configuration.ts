@@ -30,13 +30,7 @@ export const getUseBcIds = (): boolean | undefined => {
     return useBcIds;
 };
 
-export const getAutoUpdate = (): boolean => {
-    const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('checkov');
-    const autoUpdate = configuration.get<boolean>('autoUpdateCheckov', false);
-    return autoUpdate;
-};
-
-export const getCheckovVersion = (): string | undefined => {
+export const getCheckovVersion = (): string => {
 
     const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('checkov');
     const checkovVersion = configuration.get<string>('checkovVersion', 'latest').trim().toLowerCase();
