@@ -8,7 +8,7 @@ import { applyDiagnostics } from './diagnostics';
 import { fixCodeActionProvider, providedCodeActionKinds } from './suggestFix';
 import { getLogger, saveCheckovResult, isSupportedFileType, extensionVersion } from './utils';
 import { initializeStatusBarItem, setErrorStatusBarItem, setPassedStatusBarItem, setReadyStatusBarItem, setSyncingStatusBarItem, showContactUsDetails } from './userInterface';
-import { assureTokenSet, getDisableErrorMessage, getPathToCert, getUseBcIds } from './configuration';
+import { assureTokenSet, shouldDisableErrorMessage, getPathToCert, getUseBcIds } from './configuration';
 import { INSTALL_OR_UPDATE_CHECKOV_COMMAND, OPEN_CONFIGURATION_COMMAND, OPEN_EXTERNAL_COMMAND, REMOVE_DIAGNOSTICS_COMMAND, RUN_FILE_SCAN_COMMAND } from './commands';
 import { getConfigFilePath } from './parseCheckovConfig';
 
@@ -19,7 +19,6 @@ const tempScanFile = 'temp.tf';
 // this method is called when extension is activated
 export function activate(context: vscode.ExtensionContext): void {
     const logger: Logger = getLogger(context.logUri.fsPath, logFileName);
-    const disableErrorMessage = getDisableErrorMessage();
     logger.info('Starting Checkov Extension.', { extensionVersion, vscodeVersion: vscode.version });
 
     initializeStatusBarItem(OPEN_CONFIGURATION_COMMAND);
@@ -53,7 +52,7 @@ export function activate(context: vscode.ExtensionContext): void {
             } catch(error) {
                 setErrorStatusBarItem();
                 logger.error('Error occurred while preparing Checkov. try to reload vscode.', { error });
-                !disableErrorMessage && showContactUsDetails(context.logUri, logFileName);
+                !shouldDisableErrorMessage() && showContactUsDetails(context.logUri, logFileName);
             }
         }),
         vscode.commands.registerCommand(RUN_FILE_SCAN_COMMAND, async (fileUri?: vscode.Uri): Promise<void> => {
@@ -160,7 +159,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
             setErrorStatusBarItem();
             logger.error('Error occurred while running a checkov scan', { error });
-            !disableErrorMessage && showContactUsDetails(context.logUri, logFileName);
+            !shouldDisableErrorMessage() && showContactUsDetails(context.logUri, logFileName);
         }
     }, 300, {});
 }

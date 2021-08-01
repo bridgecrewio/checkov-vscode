@@ -27,7 +27,7 @@ export const getUseBcIds = (): boolean | undefined => {
     return useBcIds;
 };
 
-export const getDisableErrorMessage = (): boolean => {
+export const shouldDisableErrorMessage = (): boolean => {
     const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('checkov');
     const disableErrorMessageFlag = configuration.get<boolean>('disableErrorMessage', false);
     return disableErrorMessageFlag;
