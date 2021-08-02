@@ -69,7 +69,7 @@
         },
         "checkov.disableErrorMessage": {
           "title": "Disable error message",
-          "markdownDescription": "Don't show error message.",
+          "markdownDescription": "Stop showing error messages.",
           "type": "boolean",
           "default": false
         }
