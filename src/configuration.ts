@@ -26,3 +26,9 @@ export const getUseBcIds = (): boolean | undefined => {
     const useBcIds = configuration.get<boolean>('useBridgecrewIDs', false);
     return useBcIds;
 };
+
+export const shouldDisableErrorMessage = (): boolean => {
+    const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('checkov');
+    const disableErrorMessageFlag = configuration.get<boolean>('disableErrorMessage', false);
+    return disableErrorMessageFlag;
+};

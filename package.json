@@ -66,6 +66,12 @@
           "type": "boolean",
           "markdownDescription": "Whether to use Bridgecrew platform IDs (BC_...) instead of Checkov IDs (CKV_...)",
           "readOnly": true
+        },
+        "checkov.disableErrorMessage": {
+          "title": "Disable error message",
+          "markdownDescription": "Stop showing error messages.",
+          "type": "boolean",
+          "default": false
         }
       }
     }
