@@ -40,21 +40,25 @@ export const initializeStatusBarItem = (onClickCommand: string): void  => {
 };
 
 export const setReadyStatusBarItem = (version: string | undefined): void => {
-    statusBarItem.text = version ? `$(gear) Checkov - v${version}` : '$(gear) Checkov';
+    statusBarItem.text = getStatusBarText('gear', version);
 };
 
-export const setMissingConfigurationStatusBarItem = (): void => {
-    statusBarItem.text = '$(exclude) Checkov';
+export const setMissingConfigurationStatusBarItem = (version: string | undefined): void => {
+    statusBarItem.text = getStatusBarText('exclude', version);
 };
 
-export const setSyncingStatusBarItem = (text = 'Checkov'): void => {
-    statusBarItem.text = `$(sync~spin) ${text}`;
+export const setSyncingStatusBarItem = (version: string | undefined, text = 'Checkov'): void => {
+    statusBarItem.text = getStatusBarText('sync~spin', version, text);
 };
 
-export const setErrorStatusBarItem = (): void => {
-    statusBarItem.text = '$(error) Checkov';
+export const setErrorStatusBarItem = (version: string | undefined): void => {
+    statusBarItem.text = getStatusBarText('error', version);
 };
 
-export const setPassedStatusBarItem = (): void => {
-    statusBarItem.text = '$(pass) Checkov';
+export const setPassedStatusBarItem = (version: string | undefined): void => {
+    statusBarItem.text = getStatusBarText('pass', version);
+};
+
+const getStatusBarText = (icon: string | undefined, version: string | undefined, text = 'Checkov'): string => {
+    return `${icon ? `$(${icon}) ` : ''}${text}${version ? ` - v${version}` : ''}`;
 };

@@ -2,10 +2,11 @@ import * as vscode from 'vscode';
 import { Logger } from 'winston';
 import { setMissingConfigurationStatusBarItem } from './userInterface';
 import * as semver from 'semver';
+import { CheckovInstallation } from './checkovInstaller';
 
 const minCheckovVersion = '2.0.0';
 
-export const assureTokenSet = (logger: Logger, openConfigurationCommand: string): string | undefined => {
+export const assureTokenSet = (logger: Logger, openConfigurationCommand: string, checkovInstallation: CheckovInstallation | null): string | undefined => {
     // Read configuration
     const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('checkov');
     const token = configuration.get<string>('token');
@@ -13,7 +14,7 @@ export const assureTokenSet = (logger: Logger, openConfigurationCommand: string)
         logger.error('Bridgecrew API token was not found. Please add it to the configuration.');
         vscode.window.showErrorMessage('Bridgecrew API token was not found. Please add it to the configuration in order to scan your code.', 'Open configuration')
             .then(choice => choice === 'Open configuration' && vscode.commands.executeCommand(openConfigurationCommand));
-        setMissingConfigurationStatusBarItem();
+        setMissingConfigurationStatusBarItem(checkovInstallation?.version);
     }
     return token;
 };

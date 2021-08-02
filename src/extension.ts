@@ -42,7 +42,7 @@ export function activate(context: vscode.ExtensionContext): void {
         vscode.commands.registerCommand(INSTALL_OR_UPDATE_CHECKOV_COMMAND, async () => {
             try {
                 extensionReady = false;
-                setSyncingStatusBarItem('Updating Checkov');
+                setSyncingStatusBarItem(checkovInstallation?.version, 'Updating Checkov');
                 const checkovVersion = getCheckovVersion();
                 checkovInstallation = await installOrUpdateCheckov(logger, checkovInstallationDir, checkovVersion);
                 logger.info('Checkov installation: ', checkovInstallation);
@@ -52,7 +52,7 @@ export function activate(context: vscode.ExtensionContext): void {
                 if (vscode.window.activeTextEditor && isSupportedFileType(vscode.window.activeTextEditor.document.fileName))
                     vscode.commands.executeCommand(RUN_FILE_SCAN_COMMAND);
             } catch(error) {
-                setErrorStatusBarItem();
+                setErrorStatusBarItem(checkovInstallation?.version);
                 logger.error('Error occurred while preparing Checkov. Verify your settings, or try to reload vscode.', { error });
                 !shouldDisableErrorMessage() && showContactUsDetails(context.logUri, logFileName);
             }
@@ -64,7 +64,7 @@ export function activate(context: vscode.ExtensionContext): void {
                 return;
             }
             resetCancelTokenSource();
-            const token = assureTokenSet(logger, OPEN_CONFIGURATION_COMMAND);
+            const token = assureTokenSet(logger, OPEN_CONFIGURATION_COMMAND, checkovInstallation);
             const certPath = getPathToCert();
             const useBcIds = getUseBcIds();
             const checkovVersion = getCheckovVersion();
@@ -152,7 +152,7 @@ export function activate(context: vscode.ExtensionContext): void {
     const runScan = debounce(async (editor: vscode.TextEditor, token: string, certPath: string | undefined, useBcIds: boolean | undefined, cancelToken: vscode.CancellationToken, checkovVersion: string, fileUri?: vscode.Uri): Promise<void> => {
         logger.info('Starting to scan.');
         try {
-            setSyncingStatusBarItem('Checkov scanning');
+            setSyncingStatusBarItem(checkovInstallation?.version, 'Checkov scanning');
             const filePath = fileUri ? fileUri.fsPath : editor.document.fileName;
             const configPath = getConfigFilePath(logger);
 
@@ -164,13 +164,13 @@ export function activate(context: vscode.ExtensionContext): void {
             const checkovResponse = await runCheckovScan(logger, checkovInstallation, extensionVersion, filePath, token, certPath, useBcIds, cancelToken, configPath, checkovVersion);
             saveCheckovResult(context.workspaceState, checkovResponse.results.failedChecks);
             applyDiagnostics(editor.document, diagnostics, checkovResponse.results.failedChecks);
-            checkovResponse.results.failedChecks.length > 0 ? setErrorStatusBarItem() : setPassedStatusBarItem();
+            checkovResponse.results.failedChecks.length > 0 ? setErrorStatusBarItem(checkovInstallation?.version) : setPassedStatusBarItem(checkovInstallation?.version);
         } catch (error) {
             if (cancelToken.isCancellationRequested) {
                 return;
             }
 
-            setErrorStatusBarItem();
+            setErrorStatusBarItem(checkovInstallation?.version);
             logger.error('Error occurred while running a checkov scan', { error });
             !shouldDisableErrorMessage() && showContactUsDetails(context.logUri, logFileName);
         }
