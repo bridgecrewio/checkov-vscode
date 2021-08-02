@@ -2,13 +2,7 @@ import * as vscode from 'vscode';
 import { extensionVersion } from './utils';
 
 export const showContactUsDetails = (logDirectoryPath: vscode.Uri, logFileName: string): void => {
-    const contactUsMessage = `
-Any troubles? We can help you figure out what happened.
-Open an issue on https://github.com/bridgecrewio/checkov-vscode
-Or contact us directly on https://slack.bridgecrew.io .
-Adding the log file will be very useful,
-You can find it here:
-${logDirectoryPath}`;
+    const contactUsMessage = 'Any troubles? We can help you figure out what happened';
 
     vscode.window.showInformationMessage(contactUsMessage, 'Open log', 'Open issue', 'Slack us')
         .then(choice => {

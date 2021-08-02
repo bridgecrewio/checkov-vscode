@@ -54,3 +54,9 @@ export const getCheckovVersion = (): string => {
         return clean;
     }
 };
+
+export const shouldDisableErrorMessage = (): boolean => {
+    const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('checkov');
+    const disableErrorMessageFlag = configuration.get<boolean>('disableErrorMessage', false);
+    return disableErrorMessageFlag;
+};

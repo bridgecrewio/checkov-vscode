@@ -1,6 +1,6 @@
 {
   "name": "checkov",
-  "version": "1.0.41",
+  "version": "1.0.42",
   "displayName": "Checkov",
   "publisher": "Bridgecrew",
   "description": "Find and fix misconfigurations in infrastructure-as-code manifests like Terraform, Kubernetes, Cloudformation, Serverless framework, Arm templates using Checkov - static analysis for infrastructure as code .",
@@ -80,6 +80,11 @@
           "type": "string",
           "markdownDescription": "The Checkov scanner version to use (e.g., 2.0.123). Enter 'latest' or leave blank to always use the latest version. Be sure to run the 'Install or Update Checkov' command after changing this value. Use the 'About Checkov' to view the current version.",
           "readOnly": true
+        "checkov.disableErrorMessage": {
+          "title": "Disable error message",
+          "markdownDescription": "Stop showing error messages.",
+          "type": "boolean",
+          "default": false
         }
       }
     }
