@@ -80,6 +80,7 @@
           "type": "string",
           "markdownDescription": "The Checkov scanner version to use (e.g., 2.0.123). Enter 'latest' or leave blank to always use the latest version. Be sure to run the 'Install or Update Checkov' command after changing this value. Use the 'About Checkov' to view the current version.",
           "readOnly": true
+        },
         "checkov.disableErrorMessage": {
           "title": "Disable error message",
           "markdownDescription": "Stop showing error messages.",
