@@ -12,19 +12,22 @@ const isCheckovInstalledGlobally = async () => {
     }
 };
 
-const installOrUpdateCheckovWithPip3 = async (logger: Logger): Promise<string | null> => {
+const installOrUpdateCheckovWithPip3 = async (logger: Logger, checkovVersion: string): Promise<string | null> => {
+    logger.info('Trying to install Checkov using pip3.');
+
     try {
-        logger.info('Trying to install Checkov using pip3.');
-        await asyncExec('pip3 install -U --user --verbose checkov -i https://pypi.org/simple/');
+        const command = `pip3 install --user -U -i https://pypi.org/simple/ checkov${checkovVersion === 'latest' ? '' : `==${checkovVersion}`}`;
+        logger.debug(`Testing pip3 installation with command: ${command}`);
+        await asyncExec(command);
 
+        let checkovPath;
         if (await isCheckovInstalledGlobally()) {
-            const checkovPath = 'checkov';
-            logger.info('Checkov installed successfully using pip3.', { checkovPath });
-            return checkovPath;
+            checkovPath = 'checkov';
+        } else {
+            const [pythonUserBaseOutput] = await asyncExec('python3 -c "import site; print(site.USER_BASE)"');
+            checkovPath = path.join(pythonUserBaseOutput.trim(), 'bin', 'checkov');
         }
-
-        const [pythonUserBaseOutput] = await asyncExec('python3 -c "import site; print(site.USER_BASE)"');
-        const checkovPath = path.join(pythonUserBaseOutput.trim(), 'bin', 'checkov');
+        logger.info('Checkov installed successfully using pip3.', { checkovPath });
         return checkovPath;
     } catch (error) {
         logger.error('Failed to install or update Checkov using pip3. Error:', { error });
@@ -32,13 +35,19 @@ const installOrUpdateCheckovWithPip3 = async (logger: Logger): Promise<string | 
     }
 };
 
-const installOrUpdateCheckovWithPipenv = async (logger: Logger, installationDir: string): Promise<string | null> => {
+const installOrUpdateCheckovWithPipenv = async (logger: Logger, installationDir: string, checkovVersion: string): Promise<string | null> => {
+    
+    logger.info('Trying to install Checkov using pipenv.');
+
     try {
-        logger.info('Trying to install Checkov using pipenv.');
         fs.mkdirSync(installationDir, { recursive: true });
-        await asyncExec('pipenv --python 3 install checkov~=2.0.0', { cwd: installationDir });
+
+        const command = `pipenv --python 3 install checkov${checkovVersion ? `==${checkovVersion}` : '~=2.0.0'}`;
+        logger.debug('Testing pipenv installation with command: ', command);
+        await asyncExec(command, { cwd: installationDir });
+
         const checkovPath = 'pipenv run checkov';
-        logger.info('Checkov installed successfully using pipenv.', { checkovPath });
+        logger.info('Checkov installed successfully using pipenv.', { checkovPath, installationDir });
         return checkovPath;
     } catch (error) {
         logger.error('Failed to install or update Checkov using pipenv. Error:', { error });
@@ -46,15 +55,19 @@ const installOrUpdateCheckovWithPipenv = async (logger: Logger, installationDir:
     }
 };
 
-const installOrUpdateCheckovWithDocker = async (logger: Logger): Promise<string | null> => {
+const installOrUpdateCheckovWithDocker = async (logger: Logger, checkovVersion: string): Promise<string | null> => {
+    
+    logger.info('Trying to install Checkov using Docker.');
     try {
-        logger.info('Trying to install Checkov using Docker.');
-        await asyncExec('docker pull bridgecrew/checkov:latest');
+        const command = `docker pull bridgecrew/checkov:${checkovVersion}`;
+        logger.debug(`Testing docker installation with command: ${command}`);
+        await asyncExec(command);
+        
         const checkovPath = 'docker';
         logger.info('Checkov installed successfully using Docker.', { checkovPath });
         return checkovPath;
     } catch (error) {
-        logger.error('Failed to install or update Checkov using Docker. Error:', { error });
+        logger.error('Failed to install or update Checkov using Docker. Error: ', { error });
         return null;
     }
 };
@@ -64,14 +77,15 @@ export interface CheckovInstallation {
     checkovInstallationMethod: CheckovInstallationMethod;
     checkovPath: string;
     workingDir?: string;
+    version?: string;
 }
 
-export const installOrUpdateCheckov = async (logger: Logger, installationDir: string): Promise<CheckovInstallation> => {
-    const dockerCheckovPath = await installOrUpdateCheckovWithDocker(logger);
+export const installOrUpdateCheckov = async (logger: Logger, installationDir: string, checkovVersion: string): Promise<CheckovInstallation> => {
+    const dockerCheckovPath = await installOrUpdateCheckovWithDocker(logger, checkovVersion);
     if (dockerCheckovPath) return { checkovInstallationMethod: 'docker' , checkovPath: dockerCheckovPath };
-    const pip3CheckovPath = await installOrUpdateCheckovWithPip3(logger);
+    const pip3CheckovPath = await installOrUpdateCheckovWithPip3(logger, checkovVersion);
     if (pip3CheckovPath) return { checkovInstallationMethod: 'pip3' , checkovPath: pip3CheckovPath };
-    const pipenvCheckovPath = await installOrUpdateCheckovWithPipenv(logger, installationDir);
+    const pipenvCheckovPath = await installOrUpdateCheckovWithPipenv(logger, installationDir, checkovVersion);
     if (pipenvCheckovPath) return { checkovInstallationMethod: 'pipenv' , checkovPath: pipenvCheckovPath, workingDir: installationDir };
 
     throw new Error('Could not install Checkov.');

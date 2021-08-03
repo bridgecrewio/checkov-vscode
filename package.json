@@ -39,11 +39,19 @@
       },
       {
         "command": "checkov.install-or-update-checkov",
-        "title": "Install Or Update Checkov"
+        "title": "Install or Update Checkov"
       },
       {
         "command": "checkov.configuration.open",
-        "title": "Open settings for Checkov extension"
+        "title": "Open Checkov Settings"
+      },
+      {
+        "command": "checkov.about-checkov",
+        "title": "About Checkov"
+      },
+      {
+        "command": "checkov.open-log",
+        "title": "Open Checkov Log"
       }
     ],
     "configuration": {
@@ -67,9 +75,15 @@
           "markdownDescription": "Whether to use Bridgecrew platform IDs (BC_...) instead of Checkov IDs (CKV_...)",
           "readOnly": true
         },
+        "checkov.checkovVersion": {
+          "title": "Checkov version",
+          "type": "string",
+          "markdownDescription": "The Checkov scanner version to use (e.g., 2.0.123). Enter 'latest' or leave blank to always use the latest version. Be sure to run the 'Install or Update Checkov' command after changing this value. Use the 'About Checkov' command to view the current version.",
+          "readOnly": true
+        },
         "checkov.disableErrorMessage": {
           "title": "Disable error message",
-          "markdownDescription": "Stop showing error messages.",
+          "markdownDescription": "Stop showing error message popups (use the 'Open Checkov Log' command to view the log).",
           "type": "boolean",
           "default": false
         }
@@ -90,6 +104,7 @@
     "@types/js-yaml": "^4.0.1",
     "@types/lodash": "^4.14.168",
     "@types/mocha": "^8.0.0",
+    "@types/semver": "^7.3.8",
     "@types/node": "^12.11.7",
     "@types/vscode": "^1.48.2",
     "@typescript-eslint/eslint-plugin": "^4.1.1",
@@ -102,6 +117,7 @@
   },
   "dependencies": {
     "lodash": "^4.17.21",
+    "semver": "^7.3.5",
     "winston": "^3.3.3"
   }
 }

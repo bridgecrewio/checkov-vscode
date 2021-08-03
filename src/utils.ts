@@ -83,3 +83,10 @@ export const getWorkspacePath = (logger: winston.Logger): string | void => {
     return;
 };
 
+export const runVersionCommand = async (logger: winston.Logger, checkovPath: string, checkovVersion: string | undefined, workingDir: string | undefined): Promise<string> => {
+    const command = checkovPath === 'docker' ? `docker run bridgecrew/checkov:${checkovVersion} -v` : `${checkovPath} -v`;
+    logger.debug(`Version command: ${command}`);
+    const resp = await asyncExec(command, { ...(workingDir ? { cwd: workingDir } : {}) });
+    logger.debug(`Response from version command: ${resp[0]}`);
+    return resp[0].trim();
+};

@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { extensionVersion } from './utils';
 
 export const showContactUsDetails = (logDirectoryPath: vscode.Uri, logFileName: string): void => {
     const contactUsMessage = 'Any troubles? We can help you figure out what happened';
@@ -25,6 +26,11 @@ export const showUnsupportedFileMessage = (): void => {
     vscode.window.showWarningMessage(message);
 };
 
+export const showAboutCheckovMessage = async (version: string, installationMethod: string): Promise<void> => {
+    const message = `Checkov CLI version: ${version}; Installation method: ${installationMethod}; Extension version: ${extensionVersion}`;
+    vscode.window.showInformationMessage(message);
+};
+
 export const statusBarItem: vscode.StatusBarItem = vscode.window.createStatusBarItem();
 
 export const initializeStatusBarItem = (onClickCommand: string): void  => {
@@ -33,22 +39,26 @@ export const initializeStatusBarItem = (onClickCommand: string): void  => {
     statusBarItem.show();
 };
 
-export const setReadyStatusBarItem = (): void => {
-    statusBarItem.text = '$(gear) Checkov';
+export const setReadyStatusBarItem = (version: string | undefined): void => {
+    statusBarItem.text = getStatusBarText('gear', version);
 };
 
-export const setMissingConfigurationStatusBarItem = (): void => {
-    statusBarItem.text = '$(exclude) Checkov';
+export const setMissingConfigurationStatusBarItem = (version: string | undefined): void => {
+    statusBarItem.text = getStatusBarText('exclude', version);
 };
 
-export const setSyncingStatusBarItem = (text = 'Checkov'): void => {
-    statusBarItem.text = `$(sync~spin) ${text}`;
+export const setSyncingStatusBarItem = (version: string | undefined, text = 'Checkov'): void => {
+    statusBarItem.text = getStatusBarText('sync~spin', version, text);
 };
 
-export const setErrorStatusBarItem = (): void => {
-    statusBarItem.text = '$(error) Checkov';
+export const setErrorStatusBarItem = (version: string | undefined): void => {
+    statusBarItem.text = getStatusBarText('error', version);
 };
 
-export const setPassedStatusBarItem = (): void => {
-    statusBarItem.text = '$(pass) Checkov';
+export const setPassedStatusBarItem = (version: string | undefined): void => {
+    statusBarItem.text = getStatusBarText('pass', version);
+};
+
+const getStatusBarText = (icon: string | undefined, version: string | undefined, text = 'Checkov'): string => {
+    return `${icon ? `$(${icon}) ` : ''}${text}${version ? ` - v${version}` : ''}`;
 };

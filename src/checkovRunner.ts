@@ -3,7 +3,7 @@ import { spawn } from 'child_process';
 import * as path from 'path';
 import { Logger } from 'winston';
 import { CheckovInstallation } from './checkovInstaller';
-import { convertToUnixPath } from './utils';
+import { convertToUnixPath, runVersionCommand } from './utils';
 
 export interface FailedCheckovCheck {
     checkId: string;
@@ -39,13 +39,15 @@ interface CheckovResponseRaw {
 const dockerMountDir = '/checkovScan';
 const configMountDir = '/checkovConfig';
 
-const getDockerRunParams = (filePath: string, extensionVersion: string, configFilePath: string | null) => {
+const getDockerRunParams = (filePath: string, extensionVersion: string, configFilePath: string | null, checkovVersion: string | undefined) => {
+    const image = `bridgecrew/checkov:${checkovVersion}`;
+    const params = ['run', '--rm', '--tty', '--env', 'BC_SOURCE=vscode', '--env', `BC_SOURCE_VERSION=${extensionVersion}`,
+        '-v', `"${path.dirname(filePath)}:${dockerMountDir}"`];
+    
     return configFilePath ?
-        ['run', '--rm', '--tty', '--env', 'BC_SOURCE=vscode', '--env', `BC_SOURCE_VERSION=${extensionVersion}`,
-            '-v', `"${path.dirname(filePath)}:${dockerMountDir}"`, '-v', `"${path.dirname(configFilePath)}:${configMountDir}"`, 'bridgecrew/checkov',
+        [...params, '-v', `"${path.dirname(configFilePath)}:${configMountDir}"`, image, 
             '--config-file', `${configMountDir}/${path.basename(configFilePath)}`] :
-        ['run', '--rm', '--tty', '--env', 'BC_SOURCE=vscode', '--env', `BC_SOURCE_VERSION=${extensionVersion}`,
-            '-v', `"${path.dirname(filePath)}:${dockerMountDir}"`, 'bridgecrew/checkov'];
+        [...params, image];
 };
 
 const getpipRunParams = (configFilePath: string | null) => {
@@ -55,18 +57,22 @@ const getpipRunParams = (configFilePath: string | null) => {
 const cleanupStdout = (stdout: string) => stdout.replace(/.\[0m/g,''); // Clean docker run ANSI escapse chars
 
 export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInstallation, extensionVersion: string, fileName: string, token: string, 
-    certPath: string | undefined, useBcIds: boolean | undefined, cancelToken: vscode.CancellationToken, configPath: string | null): Promise<CheckovResponse> => {
+    certPath: string | undefined, useBcIds: boolean | undefined, cancelToken: vscode.CancellationToken, configPath: string | null, checkovVersion: string): Promise<CheckovResponse> => {
     return new Promise((resolve, reject) => {   
         const { checkovInstallationMethod, checkovPath, workingDir } = checkovInstallation;
 
-        const dockerRunParams = checkovInstallationMethod === 'docker' ? getDockerRunParams(fileName, extensionVersion, configPath) : [];
+        const dockerRunParams = checkovInstallationMethod === 'docker' ? getDockerRunParams(fileName, extensionVersion, configPath, checkovInstallation.version) : [];
         const pipRunParams =  ['pipenv', 'pip3'].includes(checkovInstallationMethod) ? getpipRunParams(configPath) : [];
         const filePath = checkovInstallationMethod === 'docker' ? convertToUnixPath(path.join(dockerMountDir, path.basename(fileName))) : fileName;
         const certificateParams: string[] = certPath ? ['-ca', certPath] : [];
         const bcIdParam: string[] = useBcIds ? ['--output-bc-ids'] : [];
         const checkovArguments: string[] = [...dockerRunParams, ...certificateParams, ...bcIdParam, '-s', '--bc-api-key', token, '--repo-id', 
             'vscode/extension', '-f', `"${filePath}"`, '-o', 'json', ...pipRunParams];
-        logger.info('Running checkov', { executablePath: checkovPath, arguments: checkovArguments.map(argument => argument === token ? '****' : argument) });
+        logger.info('Running checkov:');
+        logger.info(`${checkovPath} ${checkovArguments.map(argument => argument === token ? '****' : argument).join(' ')}`);
+        
+        runVersionCommand(logger, checkovPath, checkovVersion, checkovInstallation.workingDir);
+        
         const ckv = spawn(checkovPath, checkovArguments,
             {
                 shell: true,
