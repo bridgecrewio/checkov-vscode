@@ -42,7 +42,7 @@ const configMountDir = '/checkovConfig';
 const getDockerRunParams = (filePath: string, extensionVersion: string, configFilePath: string | null, checkovVersion: string | undefined) => {
     const image = `bridgecrew/checkov:${checkovVersion}`;
     const params = ['run', '--rm', '--tty', '--env', 'BC_SOURCE=vscode', '--env', `BC_SOURCE_VERSION=${extensionVersion}`,
-        '-v', `"${path.dirname(filePath)}:${dockerMountDir}"`];
+        '-v', `"${path.dirname(filePath)}:${dockerMountDir}"`, '-w', dockerMountDir];
     
     return configFilePath ?
         [...params, '-v', `"${path.dirname(configFilePath)}:${configMountDir}"`, image, 
