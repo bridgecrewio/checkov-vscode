@@ -3,7 +3,7 @@ import { spawn } from 'child_process';
 import * as path from 'path';
 import { Logger } from 'winston';
 import { CheckovInstallation } from './checkovInstaller';
-import { convertToUnixPath, runVersionCommand } from './utils';
+import { convertToUnixPath, getGitRepoName, runVersionCommand } from './utils';
 
 export interface FailedCheckovCheck {
     checkId: string;
@@ -66,62 +66,64 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
         const filePath = checkovInstallationMethod === 'docker' ? convertToUnixPath(path.join(dockerMountDir, path.basename(fileName))) : fileName;
         const certificateParams: string[] = certPath ? ['-ca', certPath] : [];
         const bcIdParam: string[] = useBcIds ? ['--output-bc-ids'] : [];
-        const checkovArguments: string[] = [...dockerRunParams, ...certificateParams, ...bcIdParam, '-s', '--bc-api-key', token, '--repo-id', 
-            'vscode/extension', '-f', `"${filePath}"`, '-o', 'json', ...pipRunParams];
-        logger.info('Running checkov:');
-        logger.info(`${checkovPath} ${checkovArguments.map(argument => argument === token ? '****' : argument).join(' ')}`);
+        getGitRepoName(logger, vscode.window.activeTextEditor?.document.fileName).then((repoName) => {
+            const checkovArguments: string[] = [...dockerRunParams, ...certificateParams, ...bcIdParam, '-s', '--bc-api-key', token, '--repo-id', 
+                repoName, '-f', `"${filePath}"`, '-o', 'json', ...pipRunParams];
+            logger.info('Running checkov:');
+            logger.info(`${checkovPath} ${checkovArguments.map(argument => argument === token ? '****' : argument).join(' ')}`);
         
-        runVersionCommand(logger, checkovPath, checkovVersion, checkovInstallation.workingDir);
+            runVersionCommand(logger, checkovPath, checkovVersion, checkovInstallation.workingDir);
         
-        const ckv = spawn(checkovPath, checkovArguments,
-            {
-                shell: true,
-                env: { ...process.env, BC_SOURCE: 'vscode', BC_SOURCE_VERSION: extensionVersion },
-                ...(workingDir ? { cwd: workingDir } : {})
+            const ckv = spawn(checkovPath, checkovArguments,
+                {
+                    shell: true,
+                    env: { ...process.env, BC_SOURCE: 'vscode', BC_SOURCE_VERSION: extensionVersion },
+                    ...(workingDir ? { cwd: workingDir } : {})
+                });
+
+            let stdout = '';
+
+            ckv.stdout.on('data', data => {
+                if (data.toString().startsWith('{') || data.toString().startsWith('[') || stdout) {
+                    stdout += data;
+                } else {
+                    logger.debug(`Log from Checkov: ${data}`);
+                }
             });
 
-        let stdout = '';
+            ckv.stderr.on('data', data => {
+                logger.warn(`Checkov stderr: ${data}`);
+            });
 
-        ckv.stdout.on('data', data => {
-            if (data.toString().startsWith('{') || data.toString().startsWith('[') || stdout) {
-                stdout += data;
-            } else {
-                logger.debug(`Log from Checkov: ${data}`);
-            }
-        });
+            ckv.on('error', (error) => {
+                logger.error('Error while running Checkov', { error });
+            });
 
-        ckv.stderr.on('data', data => {
-            logger.warn(`Checkov stderr: ${data}`);
-        });
+            ckv.on('close', code => {
+                try {
+                    if (cancelToken.isCancellationRequested) return reject('Cancel invoked');
+                    logger.debug(`Checkov scan process exited with code ${code}`);
+                    logger.debug('Checkov task output:', { stdout });
+                    if (code !== 0) return reject(`Checkov exited with code ${code}`);
 
-        ckv.on('error', (error) => {
-            logger.error('Error while running Checkov', { error });
-        });
+                    if (stdout.startsWith('[]')) {
+                        logger.debug('Got an empty reply from checkov', { reply: stdout, fileName });
+                        return resolve({ results: { failedChecks: [] } });
+                    }
 
-        ckv.on('close', code => {
-            try {
-                if (cancelToken.isCancellationRequested) return reject('Cancel invoked');
-                logger.debug(`Checkov scan process exited with code ${code}`);
-                logger.debug('Checkov task output:', { stdout });
-                if (code !== 0) return reject(`Checkov exited with code ${code}`);
-
-                if (stdout.startsWith('[]')) {
-                    logger.debug('Got an empty reply from checkov', { reply: stdout, fileName });
-                    return resolve({ results: { failedChecks: [] } });
+                    const cleanStdout = cleanupStdout(stdout);
+                    const output: CheckovResponseRaw = JSON.parse(cleanStdout);
+                    resolve(parseCheckovResponse(output, useBcIds));
+                } catch (error) {
+                    logger.error('Failed to get response from Checkov.', { error });
+                    reject('Failed to get response from Checkov.');
                 }
+            });
 
-                const cleanStdout = cleanupStdout(stdout);
-                const output: CheckovResponseRaw = JSON.parse(cleanStdout);
-                resolve(parseCheckovResponse(output, useBcIds));
-            } catch (error) {
-                logger.error('Failed to get response from Checkov.', { error });
-                reject('Failed to get response from Checkov.');
-            }
-        });
-
-        cancelToken.onCancellationRequested((cancelEvent) => {
-            ckv.kill('SIGABRT');
-            logger.info('Cancellation token invoked, aborting checkov run.', { cancelEvent });
+            cancelToken.onCancellationRequested((cancelEvent) => {
+                ckv.kill('SIGABRT');
+                logger.info('Cancellation token invoked, aborting checkov run.', { cancelEvent });
+            });
         });
     });
 };
