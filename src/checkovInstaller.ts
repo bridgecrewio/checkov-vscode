@@ -89,7 +89,7 @@ export const installOrUpdateCheckov = async (logger: Logger, installationDir: st
     if (dockerCheckovPath) return { checkovInstallationMethod: 'docker' , checkovPath: dockerCheckovPath };
     const pip3CheckovPath = await installOrUpdateCheckovWithPip3(logger, checkovVersion);
     if (pip3CheckovPath) return { checkovInstallationMethod: 'pip3' , checkovPath: pip3CheckovPath };
-    const pipenvCheckovPath =await installOrUpdateCheckovWithPipenv(logger, installationDir, checkovVersion);
+    const pipenvCheckovPath = await installOrUpdateCheckovWithPipenv(logger, installationDir, checkovVersion);
     if (pipenvCheckovPath) return { checkovInstallationMethod: 'pipenv' , checkovPath: pipenvCheckovPath };
 
     throw new Error('Could not install Checkov.');
