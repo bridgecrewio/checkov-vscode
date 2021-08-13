@@ -71,6 +71,7 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
         const filePathParams = checkovInstallationMethod === 'docker' ? [] : ['-f', fileName];
         const certificateParams: string[] = certPath ? ['-ca', certPath] : [];
         const bcIdParam: string[] = useBcIds ? ['--output-bc-ids'] : [];
+        const workingDir2 = vscode.workspace.rootPath;
         getGitRepoName(logger, vscode.window.activeTextEditor?.document.fileName).then((repoName) => {
             const checkovArguments: string[] = [...dockerRunParams, ...certificateParams, ...bcIdParam, '-s', '--bc-api-key', token, '--repo-id', 
                 repoName, ...filePathParams, '-o', 'json', ...pipRunParams];
@@ -83,7 +84,7 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
                 {
                     shell: true,
                     env: { ...process.env, BC_SOURCE: 'vscode', BC_SOURCE_VERSION: extensionVersion },
-                    ...(workingDir ? { cwd: workingDir } : {})
+                    ...(workingDir2 ? { cwd: workingDir2 } : {})
                 });
 
             let stdout = '';
