@@ -155,12 +155,6 @@ export const getDockerPathParams = (workspaceRoot: string | undefined, filePath:
     return relative.length > 0 && !relative.startsWith('../') && !path.isAbsolute(relative) ? [workspaceRoot, relative] : [null, filePath];
 };
 
-export const isChildPath = (parent: string, pathToCheck: string): boolean => {
-    const relative = path.relative(parent, pathToCheck);
-    // the absolute check handles changes between drives / mounts
-    return relative.length > 0 && !relative.startsWith('../') && !path.isAbsolute(relative);
-};
-
 const parseRepoName = (repoUrl: string): string | null => {
     const result = repoUrlRegex.exec(repoUrl);
     return result ? result[4] : null;
