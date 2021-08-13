@@ -3,7 +3,7 @@ import { spawn } from 'child_process';
 import * as path from 'path';
 import { Logger } from 'winston';
 import { CheckovInstallation } from './checkovInstaller';
-import { convertToUnixPath, getGitRepoName, getDockerPathParams, isChildPath, runVersionCommand } from './utils';
+import { convertToUnixPath, getGitRepoName, getDockerPathParams, runVersionCommand } from './utils';
 
 export interface FailedCheckovCheck {
     checkId: string;
