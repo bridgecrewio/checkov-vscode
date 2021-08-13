@@ -46,7 +46,7 @@ export function activate(context: vscode.ExtensionContext): void {
                 const checkovVersion = getCheckovVersion();
                 checkovInstallation = await installOrUpdateCheckov(logger, checkovInstallationDir, checkovVersion);
                 logger.info('Checkov installation: ', checkovInstallation);
-                checkovInstallation.version = await runVersionCommand(logger, checkovInstallation.checkovPath, checkovVersion, checkovInstallation.workingDir);
+                checkovInstallation.version = await runVersionCommand(logger, checkovInstallation.checkovPath, checkovVersion);
                 setReadyStatusBarItem(checkovInstallation.version);
                 extensionReady = true;
                 if (vscode.window.activeTextEditor && isSupportedFileType(vscode.window.activeTextEditor.document.fileName))

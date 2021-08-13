@@ -41,12 +41,17 @@ const installOrUpdateCheckovWithPipenv = async (logger: Logger, installationDir:
 
     try {
         fs.mkdirSync(installationDir, { recursive: true });
+        logger.debug(`Installation dir: ${installationDir}`);
+        const installCommand = `pipenv --python 3 install checkov${checkovVersion && checkovVersion.toLowerCase() !== 'latest' ? `==${checkovVersion}` : '~=2.0.0'}`;
+        logger.debug(`Testing pipenv installation with command: ${installCommand}`);
+        await asyncExec(installCommand, { cwd: installationDir });
 
-        const command = `pipenv --python 3 install checkov${checkovVersion ? `==${checkovVersion}` : '~=2.0.0'}`;
-        logger.debug('Testing pipenv installation with command: ', command);
-        await asyncExec(command, { cwd: installationDir });
+        const getExeCommand = 'pipenv run which python';
+        logger.debug(`Getting pipenv executable with command: ${getExeCommand}`);
+        const execOutput = await asyncExec(getExeCommand, { cwd: installationDir });
+        logger.debug(`pipenv python executable: ${execOutput[0]}`);
 
-        const checkovPath = 'pipenv run checkov';
+        const checkovPath = `"${path.join(path.dirname(execOutput[0]), 'checkov')}"`;
         logger.info('Checkov installed successfully using pipenv.', { checkovPath, installationDir });
         return checkovPath;
     } catch (error) {
@@ -76,17 +81,16 @@ type CheckovInstallationMethod = 'pip3' | 'pipenv' | 'docker';
 export interface CheckovInstallation {
     checkovInstallationMethod: CheckovInstallationMethod;
     checkovPath: string;
-    workingDir?: string;
     version?: string;
 }
 
 export const installOrUpdateCheckov = async (logger: Logger, installationDir: string, checkovVersion: string): Promise<CheckovInstallation> => {
-    // const dockerCheckovPath = await installOrUpdateCheckovWithDocker(logger, checkovVersion);
-    // if (dockerCheckovPath) return { checkovInstallationMethod: 'docker' , checkovPath: dockerCheckovPath };
+    const dockerCheckovPath = await installOrUpdateCheckovWithDocker(logger, checkovVersion);
+    if (dockerCheckovPath) return { checkovInstallationMethod: 'docker' , checkovPath: dockerCheckovPath };
     const pip3CheckovPath = await installOrUpdateCheckovWithPip3(logger, checkovVersion);
     if (pip3CheckovPath) return { checkovInstallationMethod: 'pip3' , checkovPath: pip3CheckovPath };
-    const pipenvCheckovPath = await installOrUpdateCheckovWithPipenv(logger, installationDir, checkovVersion);
-    if (pipenvCheckovPath) return { checkovInstallationMethod: 'pipenv' , checkovPath: pipenvCheckovPath, workingDir: installationDir };
+    const pipenvCheckovPath =await installOrUpdateCheckovWithPipenv(logger, installationDir, checkovVersion);
+    if (pipenvCheckovPath) return { checkovInstallationMethod: 'pipenv' , checkovPath: pipenvCheckovPath };
 
     throw new Error('Could not install Checkov.');
 };
