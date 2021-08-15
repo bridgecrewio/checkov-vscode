@@ -3,7 +3,7 @@ import { spawn } from 'child_process';
 import * as path from 'path';
 import { Logger } from 'winston';
 import { CheckovInstallation } from './checkovInstaller';
-import { convertToUnixPath, runVersionCommand } from './utils';
+import { convertToUnixPath, getGitRepoName, getDockerPathParams, runVersionCommand } from './utils';
 
 export interface FailedCheckovCheck {
     checkId: string;
@@ -39,15 +39,20 @@ interface CheckovResponseRaw {
 const dockerMountDir = '/checkovScan';
 const configMountDir = '/checkovConfig';
 
-const getDockerRunParams = (filePath: string, extensionVersion: string, configFilePath: string | null, checkovVersion: string | undefined) => {
+const getDockerRunParams = (workspaceRoot: string | undefined, filePath: string, extensionVersion: string, configFilePath: string | null, checkovVersion: string | undefined) => {
     const image = `bridgecrew/checkov:${checkovVersion}`;
+    const pathParams = getDockerPathParams(workspaceRoot, filePath);
+    // if filepath is within the workspace, then the mount root will be the workspace path, and the file path will be the relative file path from there.
+    // otherwise, we will mount into the file's directory, and the file path is just the filename.
+    const mountRoot = pathParams[0] || path.dirname(pathParams[1]);
+    const filePathToScan = pathParams[0] ? pathParams[1] : path.basename(filePath);
     const params = ['run', '--rm', '--tty', '--env', 'BC_SOURCE=vscode', '--env', `BC_SOURCE_VERSION=${extensionVersion}`,
-        '-v', `"${path.dirname(filePath)}:${dockerMountDir}"`];
+        '-v', `"${mountRoot}:${dockerMountDir}"`, '-w', dockerMountDir];
     
     return configFilePath ?
         [...params, '-v', `"${path.dirname(configFilePath)}:${configMountDir}"`, image, 
-            '--config-file', `${configMountDir}/${path.basename(configFilePath)}`] :
-        [...params, image];
+            '--config-file', `${configMountDir}/${path.basename(configFilePath)}`, '-f', convertToUnixPath(filePathToScan)] :
+        [...params, image, '-f', filePathToScan];
 };
 
 const getpipRunParams = (configFilePath: string | null) => {
@@ -59,69 +64,72 @@ const cleanupStdout = (stdout: string) => stdout.replace(/.\[0m/g,''); // Clean 
 export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInstallation, extensionVersion: string, fileName: string, token: string, 
     certPath: string | undefined, useBcIds: boolean | undefined, cancelToken: vscode.CancellationToken, configPath: string | null, checkovVersion: string): Promise<CheckovResponse> => {
     return new Promise((resolve, reject) => {   
-        const { checkovInstallationMethod, checkovPath, workingDir } = checkovInstallation;
+        const { checkovInstallationMethod, checkovPath } = checkovInstallation;
 
-        const dockerRunParams = checkovInstallationMethod === 'docker' ? getDockerRunParams(fileName, extensionVersion, configPath, checkovInstallation.version) : [];
+        const dockerRunParams = checkovInstallationMethod === 'docker' ? getDockerRunParams(vscode.workspace.rootPath, fileName, extensionVersion, configPath, checkovInstallation.version) : [];
         const pipRunParams =  ['pipenv', 'pip3'].includes(checkovInstallationMethod) ? getpipRunParams(configPath) : [];
-        const filePath = checkovInstallationMethod === 'docker' ? convertToUnixPath(path.join(dockerMountDir, path.basename(fileName))) : fileName;
+        const filePathParams = checkovInstallationMethod === 'docker' ? [] : ['-f', fileName];
         const certificateParams: string[] = certPath ? ['-ca', certPath] : [];
         const bcIdParam: string[] = useBcIds ? ['--output-bc-ids'] : [];
-        const checkovArguments: string[] = [...dockerRunParams, ...certificateParams, ...bcIdParam, '-s', '--bc-api-key', token, '--repo-id', 
-            'vscode/extension', '-f', `"${filePath}"`, '-o', 'json', ...pipRunParams];
-        logger.info('Running checkov:');
-        logger.info(`${checkovPath} ${checkovArguments.map(argument => argument === token ? '****' : argument).join(' ')}`);
+        const workingDir = vscode.workspace.rootPath;
+        getGitRepoName(logger, vscode.window.activeTextEditor?.document.fileName).then((repoName) => {
+            const checkovArguments: string[] = [...dockerRunParams, ...certificateParams, ...bcIdParam, '-s', '--bc-api-key', token, '--repo-id', 
+                repoName, ...filePathParams, '-o', 'json', ...pipRunParams];
+            logger.info('Running checkov:');
+            logger.info(`${checkovPath} ${checkovArguments.map(argument => argument === token ? '****' : argument).join(' ')}`);
         
-        runVersionCommand(logger, checkovPath, checkovVersion, checkovInstallation.workingDir);
+            runVersionCommand(logger, checkovPath, checkovVersion);
         
-        const ckv = spawn(checkovPath, checkovArguments,
-            {
-                shell: true,
-                env: { ...process.env, BC_SOURCE: 'vscode', BC_SOURCE_VERSION: extensionVersion },
-                ...(workingDir ? { cwd: workingDir } : {})
+            const ckv = spawn(checkovPath, checkovArguments,
+                {
+                    shell: true,
+                    env: { ...process.env, BC_SOURCE: 'vscode', BC_SOURCE_VERSION: extensionVersion },
+                    ...(workingDir ? { cwd: workingDir } : {})
+                });
+
+            let stdout = '';
+
+            ckv.stdout.on('data', data => {
+                if (data.toString().startsWith('{') || data.toString().startsWith('[') || stdout) {
+                    stdout += data;
+                } else {
+                    logger.debug(`Log from Checkov: ${data}`);
+                }
             });
 
-        let stdout = '';
+            ckv.stderr.on('data', data => {
+                logger.warn(`Checkov stderr: ${data}`);
+            });
 
-        ckv.stdout.on('data', data => {
-            if (data.toString().startsWith('{') || data.toString().startsWith('[') || stdout) {
-                stdout += data;
-            } else {
-                logger.debug(`Log from Checkov: ${data}`);
-            }
-        });
+            ckv.on('error', (error) => {
+                logger.error('Error while running Checkov', { error });
+            });
 
-        ckv.stderr.on('data', data => {
-            logger.warn(`Checkov stderr: ${data}`);
-        });
+            ckv.on('close', code => {
+                try {
+                    if (cancelToken.isCancellationRequested) return reject('Cancel invoked');
+                    logger.debug(`Checkov scan process exited with code ${code}`);
+                    logger.debug('Checkov task output:', { stdout });
+                    if (code !== 0) return reject(`Checkov exited with code ${code}`);
 
-        ckv.on('error', (error) => {
-            logger.error('Error while running Checkov', { error });
-        });
+                    if (stdout.startsWith('[]')) {
+                        logger.debug('Got an empty reply from checkov', { reply: stdout, fileName });
+                        return resolve({ results: { failedChecks: [] } });
+                    }
 
-        ckv.on('close', code => {
-            try {
-                if (cancelToken.isCancellationRequested) return reject('Cancel invoked');
-                logger.debug(`Checkov scan process exited with code ${code}`);
-                logger.debug('Checkov task output:', { stdout });
-                if (code !== 0) return reject(`Checkov exited with code ${code}`);
-
-                if (stdout.startsWith('[]')) {
-                    logger.debug('Got an empty reply from checkov', { reply: stdout, fileName });
-                    return resolve({ results: { failedChecks: [] } });
+                    const cleanStdout = cleanupStdout(stdout);
+                    const output: CheckovResponseRaw = JSON.parse(cleanStdout);
+                    resolve(parseCheckovResponse(output, useBcIds));
+                } catch (error) {
+                    logger.error('Failed to get response from Checkov.', { error });
+                    reject('Failed to get response from Checkov.');
                 }
+            });
 
-                const cleanStdout = cleanupStdout(stdout);
-                const output: CheckovResponseRaw = JSON.parse(cleanStdout);
-                resolve(parseCheckovResponse(output, useBcIds));
-            } catch (error) {
-                logger.error('Failed to get response from Checkov.', { error });
-                reject('Failed to get response from Checkov.');
-            }
-        });
-
-        cancelToken.onCancellationRequested((cancelEvent) => {
-            ckv.kill('SIGABRT');
-            logger.info('Cancellation token invoked, aborting checkov run.', { cancelEvent });
+            cancelToken.onCancellationRequested((cancelEvent) => {
+                ckv.kill('SIGABRT');
+                logger.info('Cancellation token invoked, aborting checkov run.', { cancelEvent });
+            });
         });
     });
 };

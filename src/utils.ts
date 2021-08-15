@@ -5,9 +5,17 @@ import { FailedCheckovCheck } from './checkovRunner';
 import { DiagnosticReferenceCode } from './diagnostics';
 import { CHECKOV_MAP } from './extension';
 import { showUnsupportedFileMessage } from './userInterface';
+import * as path from 'path';
 
 const extensionData = vscode.extensions.getExtension('bridgecrew.checkov');
 export const extensionVersion = extensionData ? extensionData.packageJSON.version : 'unknown';
+const defaultRepoName = 'vscode/extension';
+// Matches the following URLs with group 4 == 'org/repo':
+// git://github.com/org/repo.git
+// git@github.com:org/repo.git
+// https://github.com/org/repo.git
+// eslint-disable-next-line no-useless-escape
+const repoUrlRegex = /^(https|git)(:\/\/|@)([^\/:]+)[\/:](.+).git$/;
 
 type ExecOutput = [stdout: string, stderr: string];
 export const asyncExec = async (commandToExecute: string, options: ExecOptions = {}): Promise<ExecOutput> => {
@@ -83,10 +91,71 @@ export const getWorkspacePath = (logger: winston.Logger): string | void => {
     return;
 };
 
-export const runVersionCommand = async (logger: winston.Logger, checkovPath: string, checkovVersion: string | undefined, workingDir: string | undefined): Promise<string> => {
+export const runVersionCommand = async (logger: winston.Logger, checkovPath: string, checkovVersion: string | undefined): Promise<string> => {
     const command = checkovPath === 'docker' ? `docker run bridgecrew/checkov:${checkovVersion} -v` : `${checkovPath} -v`;
     logger.debug(`Version command: ${command}`);
-    const resp = await asyncExec(command, { ...(workingDir ? { cwd: workingDir } : {}) });
+    const resp = await asyncExec(command);
     logger.debug(`Response from version command: ${resp[0]}`);
     return resp[0].trim();
+};
+
+export const getGitRepoName = async (logger: winston.Logger, filename: string | undefined): Promise<string> => {
+    if (!filename) {
+        logger.debug('Filename was empty when getting git repo; returning default');
+        return defaultRepoName;
+    }
+    const cwd = path.dirname(filename);
+    try {
+        const output = await asyncExec('git remote -v', { cwd });
+
+        if (output[1]) {
+            logger.info(`Got stderr output when getting git repo; returning default. Output: ${output[1]}`);
+            return defaultRepoName;
+        }
+        logger.debug(`Output:\n${output[0]}`);
+
+        const lines = output[0].split('\n');
+    
+        let firstLine; // we'll save this and come back to it if we don't find 'origin'
+        for (const line of lines) {
+            if (!firstLine) {
+                firstLine = line;
+            }
+            if (line.startsWith('origin')) {
+            // remove the upstream name from the front and '(fetch)' or '(push)' from the back
+                const repoUrl = line.split('\t')[1].split(' ')[0];
+                const repoName = parseRepoName(repoUrl);
+                if (repoName) {
+                    return repoName;
+                }
+            }
+        }
+
+        // if we're here, then there is no 'origin', so just take the first line as a default (regardless of how many upsteams there happen to be)
+        if (firstLine) {
+            const repoUrl = firstLine.split('\t')[1];
+            const repoName = parseRepoName(repoUrl);
+            if (repoName) {
+                return repoName;
+            }
+        }
+
+        logger.debug('Did not find any valid repo URL in the "git remote -v" output; returning default');
+    } catch (error) {
+        logger.debug('git remote -v command failed; returning default', error);
+    }
+    return defaultRepoName;
+};
+
+export const getDockerPathParams = (workspaceRoot: string | undefined, filePath: string): [string | null, string] => {
+    if (!workspaceRoot) {
+        return [null, filePath];
+    }
+    const relative = path.relative(workspaceRoot, filePath);
+    return relative.length > 0 && !relative.startsWith('../') && !path.isAbsolute(relative) ? [workspaceRoot, relative] : [null, filePath];
+};
+
+const parseRepoName = (repoUrl: string): string | null => {
+    const result = repoUrlRegex.exec(repoUrl);
+    return result ? result[4] : null;
 };
