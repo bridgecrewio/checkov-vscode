@@ -1,15 +1,36 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { Logger } from 'winston';
-import { asyncExec } from './utils';
+import * as os from 'os';
+import { Logger, loggers } from 'winston';
+import { asyncExec, isWindows } from './utils';
 
-const isCheckovInstalledGlobally = async () => {
+const isPipCheckovInstalledGlobally = async () => {
     try {
         await asyncExec('checkov --version');
         return true;
     } catch (err) {
         return false;
     }
+};
+
+const getPipCheckovExecutablePath = async (logger: Logger): Promise<string> => {
+    if (!isWindows) {
+        const [pythonUserBaseOutput] = await asyncExec('python3 -c "import site; print(site.USER_BASE)"');
+        logger.debug(`User base output: ${pythonUserBaseOutput}`);
+        return path.join(pythonUserBaseOutput, 'bin', 'checkov');
+    } else {
+        // Windows has issues with the approach above (no surprise), but we can get to site-packages and from there to the executable
+        const [showCheckovOutput] = await asyncExec('pip3 show checkov');
+        for (const line of showCheckovOutput.split(os.EOL)) {
+            if (line.startsWith('Location: ')) {
+                logger.debug(line);
+                const sitePackagePath = line.split(' ')[1];
+                return path.join(path.dirname(sitePackagePath), 'Scripts', 'checkov');
+            }
+        }
+    }
+
+    throw new Error('Failed to find the path to the non-global checkov executable')
 };
 
 const installOrUpdateCheckovWithPip3 = async (logger: Logger, checkovVersion: string): Promise<string | null> => {
@@ -21,17 +42,28 @@ const installOrUpdateCheckovWithPip3 = async (logger: Logger, checkovVersion: st
         await asyncExec(command);
 
         let checkovPath;
-        if (await isCheckovInstalledGlobally()) {
+        if (await isPipCheckovInstalledGlobally()) {
             checkovPath = 'checkov';
         } else {
-            const [pythonUserBaseOutput] = await asyncExec('python3 -c "import site; print(site.USER_BASE)"');
-            checkovPath = path.join(pythonUserBaseOutput.trim(), 'bin', 'checkov');
+            checkovPath = await getPipCheckovExecutablePath(logger);
         }
         logger.info('Checkov installed successfully using pip3.', { checkovPath });
         return checkovPath;
     } catch (error) {
         logger.error('Failed to install or update Checkov using pip3. Error:', { error });
         return null;
+    }
+};
+
+const getPipenvPythonExecutableLocation = async (logger: Logger, cwd: string): Promise<string> => {
+    const getExeCommand = isWindows ? 'pipenv run where python': 'pipenv run which python';
+    logger.debug(`Getting pipenv executable with command: ${getExeCommand}`);
+    const [execOutput] = await asyncExec(getExeCommand, { cwd });
+
+    if (!isWindows) {
+        return execOutput;
+    } else {
+        return execOutput.split(os.EOL)[0]; // Windows returns all results from the path
     }
 };
 
@@ -46,12 +78,10 @@ const installOrUpdateCheckovWithPipenv = async (logger: Logger, installationDir:
         logger.debug(`Testing pipenv installation with command: ${installCommand}`);
         await asyncExec(installCommand, { cwd: installationDir });
 
-        const getExeCommand = 'pipenv run which python';
-        logger.debug(`Getting pipenv executable with command: ${getExeCommand}`);
-        const execOutput = await asyncExec(getExeCommand, { cwd: installationDir });
-        logger.debug(`pipenv python executable: ${execOutput[0]}`);
+        const execOutput = await getPipenvPythonExecutableLocation(logger, installationDir);
+        logger.debug(`pipenv python executable: ${execOutput}`);
 
-        const checkovPath = `"${path.join(path.dirname(execOutput[0]), 'checkov')}"`;
+        const checkovPath = `"${path.join(path.dirname(execOutput), 'checkov')}"`;
         logger.info('Checkov installed successfully using pipenv.', { checkovPath, installationDir });
         return checkovPath;
     } catch (error) {

@@ -45,13 +45,13 @@ const getDockerRunParams = (workspaceRoot: string | undefined, filePath: string,
     // if filepath is within the workspace, then the mount root will be the workspace path, and the file path will be the relative file path from there.
     // otherwise, we will mount into the file's directory, and the file path is just the filename.
     const mountRoot = pathParams[0] || path.dirname(pathParams[1]);
-    const filePathToScan = pathParams[0] ? pathParams[1] : path.basename(filePath);
+    const filePathToScan = convertToUnixPath(pathParams[0] ? pathParams[1] : path.basename(filePath));
     const params = ['run', '--rm', '--tty', '--env', 'BC_SOURCE=vscode', '--env', `BC_SOURCE_VERSION=${extensionVersion}`,
         '-v', `"${mountRoot}:${dockerMountDir}"`, '-w', dockerMountDir];
     
     return configFilePath ?
         [...params, '-v', `"${path.dirname(configFilePath)}:${configMountDir}"`, image, 
-            '--config-file', `${configMountDir}/${path.basename(configFilePath)}`, '-f', convertToUnixPath(filePathToScan)] :
+            '--config-file', `${configMountDir}/${path.basename(configFilePath)}`, '-f', filePathToScan] :
         [...params, image, '-f', filePathToScan];
 };
 

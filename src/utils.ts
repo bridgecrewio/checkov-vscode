@@ -16,6 +16,7 @@ const defaultRepoName = 'vscode/extension';
 // https://github.com/org/repo.git
 // eslint-disable-next-line no-useless-escape
 const repoUrlRegex = /^(https|git)(:\/\/|@)([^\/:]+)[\/:](.+).git$/;
+export const isWindows = process.platform === 'win32';
 
 type ExecOutput = [stdout: string, stderr: string];
 export const asyncExec = async (commandToExecute: string, options: ExecOptions = {}): Promise<ExecOutput> => {
@@ -152,7 +153,7 @@ export const getDockerPathParams = (workspaceRoot: string | undefined, filePath:
         return [null, filePath];
     }
     const relative = path.relative(workspaceRoot, filePath);
-    return relative.length > 0 && !relative.startsWith('../') && !path.isAbsolute(relative) ? [workspaceRoot, relative] : [null, filePath];
+    return relative.length > 0 && !relative.startsWith('../') && !relative.startsWith('..\\') && !path.isAbsolute(relative) ? [workspaceRoot, relative] : [null, filePath];
 };
 
 const parseRepoName = (repoUrl: string): string | null => {
