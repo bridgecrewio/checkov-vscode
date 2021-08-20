@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { Logger, loggers } from 'winston';
+import { Logger } from 'winston';
 import { asyncExec, isWindows } from './utils';
 
 const isPipCheckovInstalledGlobally = async () => {
@@ -30,7 +30,7 @@ const getPipCheckovExecutablePath = async (logger: Logger): Promise<string> => {
         }
     }
 
-    throw new Error('Failed to find the path to the non-global checkov executable')
+    throw new Error('Failed to find the path to the non-global checkov executable');
 };
 
 const installOrUpdateCheckovWithPip3 = async (logger: Logger, checkovVersion: string): Promise<string | null> => {
