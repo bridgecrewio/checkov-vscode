@@ -89,7 +89,7 @@
         },
         "checkov.prismaURL": {
           "title": "Prisma app URL",
-          "markdownDescription": "URL of your prisma application. (e.g., https://my-app.prismacloud.io)    \n [Required] if you are using Prisma access key",
+          "markdownDescription": "URL of your Prisma Cloud application. (e.g., https://my-app.prismacloud.io)    \n [Required] if you are using Prisma Cloud access key",
           "type": "string"
         }
       }
