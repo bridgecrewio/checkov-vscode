@@ -83,7 +83,7 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
             const ckv = spawn(checkovPath, checkovArguments,
                 {
                     shell: true,
-                    env: { ...process.env, BC_SOURCE: 'vscode', BC_SOURCE_VERSION: extensionVersion, PRISMA_API_URL: `${prismaUrl}/api` },
+                    env: { ...process.env, BC_SOURCE: 'vscode', BC_SOURCE_VERSION: extensionVersion, PRISMA_API_URL: prismaUrl },
                     ...(workingDir ? { cwd: workingDir } : {})
                 });
 
