@@ -60,7 +60,7 @@
         "checkov.token": {
           "title": "Token",
           "type": "string",
-          "markdownDescription": "In order to activate inline infrastructure-as-code fixes, you need to integrate with Bridgecrew's fixes API.   \n It's free to create an account and takes less than 2 minutes, Go to [Bridgecrew Platform](https://bridgecrew.cloud/) to get started.  \n Your API token can be found in the integrations tab, under \"API Token\". \n The extension will provide API access to the file, if checkov finds policy violations, in order to generate and supply the suggested fixes.",
+          "markdownDescription": "In order to activate inline infrastructure-as-code fixes, you need to integrate with Bridgecrew's fixes API.   \n It's free to create an account and takes less than 2 minutes, Go to [Bridgecrew Platform](https://bridgecrew.cloud/) to get started.  \n Your API token can be found in the integrations tab, under \"API Token\".   \n  For Prisma Cloud users - use your access keys as token in the following format: `\"<AccessKey>::<SecretKey>\"`.  \n The extension will provide API access to the file, if checkov finds policy violations, in order to generate and supply the suggested fixes.",
           "readOnly": true
         },
         "checkov.certificate": {
@@ -86,6 +86,11 @@
           "markdownDescription": "Stop showing error message popups (use the 'Open Checkov Log' command to view the log).",
           "type": "boolean",
           "default": false
+        },
+        "checkov.prismaURL": {
+          "title": "Prisma app URL",
+          "markdownDescription": "URL of your Prisma Cloud application API. (e.g., https://api.my-app.prismacloud.io)    \n [Required] if you are using Prisma Cloud access key",
+          "type": "string"
         }
       }
     }
