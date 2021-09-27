@@ -15,7 +15,10 @@ const defaultRepoName = 'vscode/extension';
 // git@github.com:org/repo.git
 // https://github.com/org/repo.git
 // eslint-disable-next-line no-useless-escape
-const repoUrlRegex = /^(https|git)(:\/\/|@)([^\/:]+)[\/:](.+).git$/;
+
+// See comment in "parseRepoName"
+// const repoUrlRegex = /^(https|git)(:\/\/|@)([^\/:]+)[\/:](.+).git$/;
+
 export const isWindows = process.platform === 'win32';
 
 export type TokenType = 'bc-token' | 'prisma';
@@ -159,8 +162,24 @@ export const getDockerPathParams = (workspaceRoot: string | undefined, filePath:
 };
 
 const parseRepoName = (repoUrl: string): string | null => {
-    const result = repoUrlRegex.exec(repoUrl);
-    return result ? result[4] : null;
+    const lastSlash = repoUrl.lastIndexOf('/');
+    if (lastSlash === -1) {
+        return null;
+    }
+    // / is used in https URLs, and : in git@ URLs
+    const priorSlash = repoUrl.lastIndexOf('/', lastSlash - 1);
+    const priorColon = repoUrl.lastIndexOf(':', lastSlash - 1);
+
+    if (priorSlash === -1 && priorColon === -1) {
+        return null;
+    }
+
+    return repoUrl.substring(Math.max(priorSlash, priorColon) + 1, repoUrl.lastIndexOf('.git'));
+
+    // Commenting out for now, because the code above is a temporary workaround to the case where the git server
+    // is not hosted at the root level (e.g., https://company.example.com/git)
+    // const result = repoUrlRegex.exec(repoUrl);
+    // return result ? result[4] : null;
 };
 
 export const getTokenType = (token: string): TokenType => token.includes('::') ? 'prisma' : 'bc-token';
