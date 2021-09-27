@@ -21,6 +21,8 @@ const defaultRepoName = 'vscode/extension';
 
 export const isWindows = process.platform === 'win32';
 
+export type TokenType = 'bc-token' | 'prisma';
+
 type ExecOutput = [stdout: string, stderr: string];
 export const asyncExec = async (commandToExecute: string, options: ExecOptions = {}): Promise<ExecOutput> => {
     const defaultOptions: ExecOptions = { maxBuffer: 1024 * 1000 };
@@ -179,3 +181,5 @@ const parseRepoName = (repoUrl: string): string | null => {
     // const result = repoUrlRegex.exec(repoUrl);
     // return result ? result[4] : null;
 };
+
+export const getTokenType = (token: string): TokenType => token.includes('::') ? 'prisma' : 'bc-token';

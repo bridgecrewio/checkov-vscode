@@ -17,7 +17,7 @@ const getPipCheckovExecutablePath = async (logger: Logger): Promise<string> => {
     if (!isWindows) {
         const [pythonUserBaseOutput] = await asyncExec('python3 -c "import site; print(site.USER_BASE)"');
         logger.debug(`User base output: ${pythonUserBaseOutput}`);
-        return path.join(pythonUserBaseOutput, 'bin', 'checkov');
+        return path.join(pythonUserBaseOutput.trim(), 'bin', 'checkov');
     } else {
         // Windows has issues with the approach above (no surprise), but we can get to site-packages and from there to the executable
         const [showCheckovOutput] = await asyncExec('pip3 show checkov');

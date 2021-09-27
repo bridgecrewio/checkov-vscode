@@ -62,14 +62,14 @@ const getpipRunParams = (configFilePath: string | null) => {
 const cleanupStdout = (stdout: string) => stdout.replace(/.\[0m/g,''); // Clean docker run ANSI escapse chars
 
 export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInstallation, extensionVersion: string, fileName: string, token: string, 
-    certPath: string | undefined, useBcIds: boolean | undefined, cancelToken: vscode.CancellationToken, configPath: string | null, checkovVersion: string): Promise<CheckovResponse> => {
+    certPath: string | undefined, useBcIds: boolean | undefined, cancelToken: vscode.CancellationToken, configPath: string | null, checkovVersion: string, prismaUrl: string | undefined): Promise<CheckovResponse> => {
     return new Promise((resolve, reject) => {   
         const { checkovInstallationMethod, checkovPath } = checkovInstallation;
 
         const dockerRunParams = checkovInstallationMethod === 'docker' ? getDockerRunParams(vscode.workspace.rootPath, fileName, extensionVersion, configPath, checkovInstallation.version) : [];
         const pipRunParams =  ['pipenv', 'pip3'].includes(checkovInstallationMethod) ? getpipRunParams(configPath) : [];
         const filePathParams = checkovInstallationMethod === 'docker' ? [] : ['-f', fileName];
-        const certificateParams: string[] = certPath ? ['-ca', certPath] : [];
+        const certificateParams: string[] = certPath ? ['-ca', `"${certPath}"`] : [];
         const bcIdParam: string[] = useBcIds ? ['--output-bc-ids'] : [];
         const workingDir = vscode.workspace.rootPath;
         getGitRepoName(logger, vscode.window.activeTextEditor?.document.fileName).then((repoName) => {
@@ -83,7 +83,7 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
             const ckv = spawn(checkovPath, checkovArguments,
                 {
                     shell: true,
-                    env: { ...process.env, BC_SOURCE: 'vscode', BC_SOURCE_VERSION: extensionVersion },
+                    env: { ...process.env, BC_SOURCE: 'vscode', BC_SOURCE_VERSION: extensionVersion, PRISMA_API_URL: prismaUrl },
                     ...(workingDir ? { cwd: workingDir } : {})
                 });
 
