@@ -51,8 +51,8 @@ const getDockerRunParams = (workspaceRoot: string | undefined, filePath: string,
     
     return configFilePath ?
         [...params, '-v', `"${path.dirname(configFilePath)}:${configMountDir}"`, image, 
-            '--config-file', `${configMountDir}/${path.basename(configFilePath)}`, '-f', `"${filePathToScan}"`] :
-        [...params, image, '-f', `"filePathToScan"`];
+            '--config-file', `${configMountDir}/${path.basename(configFilePath)}`, '-f', filePathToScan] :
+        [...params, image, '-f', filePathToScan];
 };
 
 const getpipRunParams = (configFilePath: string | null) => {
