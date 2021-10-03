@@ -79,10 +79,10 @@ export const convertToUnixPath = (path: string): string => {
     const hasNonAscii = /[^\u0000-\u0080]+/.test(path);
 
     if (isExtendedLengthPath || hasNonAscii) {
-        return path;
+        return `"${path}"`;
     }
 
-    return path.replace(/\\/g, '/');
+    return `"${path.replace(/\\/g, '/')}"`;
 };
 
 export const getWorkspacePath = (logger: winston.Logger): string | void => {
