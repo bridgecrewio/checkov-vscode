@@ -12,10 +12,12 @@ export const applyDiagnostics = (document: vscode.TextDocument, diagnostics: vsc
     for (const failure of failedCheckovChecks) {
         const line = document.lineAt(failure.fileLineRange[0] - 1); // checkov results are 1-based; these lines are 0-based
         const startPos = line.range.start.translate({ characterDelta: line.firstNonWhitespaceCharacterIndex });
-        const code: DiagnosticReferenceCode = {
-            target: vscode.Uri.parse(failure.guideline),
-            value: failure.checkId
-        };
+        const code: DiagnosticReferenceCode | string =
+            failure.guideline?.startsWith('http') ? 
+                {
+                    target: vscode.Uri.parse(failure.guideline),
+                    value: failure.checkId
+                } : `${failure.checkId}${failure.guideline ? `: ${failure.guideline}` : ''}`;
 
         foundDiagnostics.push({
             message: failure.checkName,
