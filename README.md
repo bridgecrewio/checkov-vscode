@@ -19,11 +19,11 @@ Activating the extension requires submission of one-time Bridgecrew API Token th
 
 Extension features include:
 
-* [800 built-in policies](https://github.com/bridgecrewio/checkov/blob/master/docs/3.Scans/resource-scans.md) covering security and compliance best practices for AWS, Azure and Google Cloud.
+* [1000+ built-in policies](https://github.com/bridgecrewio/checkov/blob/master/docs/5.Policy%20Index/all.md) covering security and compliance best practices for AWS, Azure and Google Cloud.
 * Terraform, Terraform Plan, CloudFormation, Kubernetes, Helm, Serverless and ARM template scanning.
-* Detects [AWS credentials](https://github.com/bridgecrewio/checkov/blob/master/docs/3.Scans/Credentials%20Scans.md) in EC2 Userdata, Lambda environment variables and Terraform providers.
-* In Terraform, checks support evaluation of arguments expressed in [variables](https://github.com/bridgecrewio/checkov/blob/master/docs/2.Concepts/Evaluations.md) and remote modules to their actual values.
-* Supports inline [suppression](https://github.com/bridgecrewio/checkov/blob/master/docs/2.Concepts/Suppressions.md) via comments.
+* Detects [AWS credentials](https://github.com/bridgecrewio/checkov/blob/master/docs/2.Basics/Scanning%20Credentials%20and%20Secrets.md) in EC2 Userdata, Lambda environment variables and Terraform providers.
+* In Terraform, checks support evaluation of arguments expressed in [variables](https://github.com/bridgecrewio/checkov/blob/master/docs/2.Basics/Handling%20Variables.md) and remote modules to their actual values.
+* Supports inline [suppression](https://github.com/bridgecrewio/checkov/blob/master/docs/2.Basics/Suppressing%20and%20Skipping%20Policies.md) via comments.
 * Links to policy descriptions, rationales as well as step by step instructions for fixing known misconfigurations.
 * Fix suggestions for commonly misconfigured Terraform and CloudFormation attributes.
 
