@@ -174,7 +174,8 @@ const parseRepoName = (repoUrl: string): string | null => {
         return null;
     }
 
-    return repoUrl.substring(Math.max(priorSlash, priorColon) + 1, repoUrl.lastIndexOf('.git'));
+    const gitIndex = repoUrl.lastIndexOf('.git');
+    return repoUrl.substring(Math.max(priorSlash, priorColon) + 1, gitIndex == -1 ? repoUrl.length : gitIndex);
 
     // Commenting out for now, because the code above is a temporary workaround to the case where the git server
     // is not hosted at the root level (e.g., https://company.example.com/git)
