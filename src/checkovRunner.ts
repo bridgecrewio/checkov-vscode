@@ -51,7 +51,7 @@ const getDockerRunParams = (workspaceRoot: string | undefined, filePath: string,
     // otherwise, we will mount into the file's directory, and the file path is just the filename.
     const mountRoot = pathParams[0] || path.dirname(pathParams[1]);
     const filePathToScan = convertToUnixPath(pathParams[0] ? pathParams[1] : path.basename(filePath));
-    const params = ['run', '--name', 'checkov-vscode', '--rm', '--tty', '--env', 'BC_SOURCE=vscode', '--env', `BC_SOURCE_VERSION=${extensionVersion}`,
+    const params = ['run', '--rm', '--tty', '--env', 'BC_SOURCE=vscode', '--env', `BC_SOURCE_VERSION=${extensionVersion}`,
         '-v', `"${mountRoot}:${dockerMountDir}"`, '-w', dockerMountDir];
     
     return configFilePath ?
