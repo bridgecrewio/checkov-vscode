@@ -20,6 +20,11 @@ interface CheckovResponse {
     };
 }
 
+interface SuccessResponseRaw {
+    resource_count: 0;
+    results: undefined;
+}
+
 interface FailedCheckovCheckRaw {
     check_id: string;
     bc_check_id: string | undefined;
@@ -134,9 +139,20 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
     });
 };
 
-const parseCheckovResponse = (rawResponse: CheckovResponseRaw, useBcIds: boolean | undefined): CheckovResponse => {
+const parseCheckovResponse = (rawResponse: CheckovResponseRaw | SuccessResponseRaw, useBcIds: boolean | undefined): CheckovResponse => {
 
     let failedChecks: FailedCheckovCheckRaw[];
+    if (!rawResponse.results) {
+        if  (rawResponse.resource_count === 0) {
+            return {
+                results: {
+                    failedChecks: []
+                }
+            };
+        } else {
+            throw new Error('Unexpected checkov response');
+        }
+    }
 
     if (Array.isArray(rawResponse)) {
         failedChecks = rawResponse.reduce((res, val) => res.concat(val.results.failed_checks), []);
