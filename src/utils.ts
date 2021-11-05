@@ -50,8 +50,17 @@ export const saveCheckovResult = (state: vscode.Memento, checkovFails: FailedChe
     state.update(CHECKOV_MAP, checkovMap);
 };
 
-export const createDiagnosticKey = (diagnostic: vscode.Diagnostic): string =>
-    `${(diagnostic.code as DiagnosticReferenceCode).value}-${diagnostic.range.start.line + 1}`;
+export const createDiagnosticKey = (diagnostic: vscode.Diagnostic): string => {
+    let checkId;
+    if (typeof(diagnostic.code) === 'string') {
+        // code is a custom policy in format: policy_id[:guideline]
+        const colonIndex = diagnostic.code.indexOf(':');
+        checkId = colonIndex === -1 ? diagnostic.code : diagnostic.code.substring(0, colonIndex);
+    } else {
+        checkId = (diagnostic.code as DiagnosticReferenceCode).value;
+    }
+    return `${checkId}-${diagnostic.range.start.line + 1}`;
+};
 export const createCheckovKey = (checkovFail: FailedCheckovCheck): string => `${checkovFail.checkId}-${checkovFail.fileLineRange[0]}`;
 
 export const getLogger = (logFileDir: string, logFileName: string): winston.Logger => winston.createLogger({
