@@ -20,10 +20,7 @@ jobs:
           node-version: 12
       - name: Publish to Marketplace
         run: |
-          mkdir -p -m 777 ~/.npm-global-packages
-          npm config set prefix '~/.npm-global-packages'
-          export PATH=~/.npm-global-packages/bin:$PATH
           npm ci
-          npm install -g vsce
+          npm install -g --unsafe-perm vsce
           vsce package
           vsce publish -p ${{ secrets.VSCODE_MARKETPLACE_TOKEN }}
