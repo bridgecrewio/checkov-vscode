@@ -20,6 +20,7 @@ jobs:
           node-version: 12
       - name: Publish to Marketplace
         run: |
+          npm config delete prefix 
           npm ci
           npm install -g --unsafe-perm vsce
           vsce package
