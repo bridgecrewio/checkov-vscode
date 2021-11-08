@@ -21,6 +21,6 @@ jobs:
       - name: Publish to Marketplace
         run: |
           npm ci
-          npm install -g vsce
+          npm install -g --unsafe-perm vsce
           vsce package
           vsce publish -p ${{ secrets.VSCODE_MARKETPLACE_TOKEN }}
