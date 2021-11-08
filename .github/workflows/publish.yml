@@ -20,9 +20,9 @@ jobs:
           node-version: 12
       - name: Publish to Marketplace
         run: |
-          mkdir -m 777 ~/.npm-global
-          npm config set prefix '~/.npm-global'
-          export PATH=~/.npm-global/bin:$PATH
+          mkdir -p -m 777 ~/.npm-global-packages
+          npm config set prefix '~/.npm-global-packages'
+          export PATH=~/.npm-global-packages/bin:$PATH
           npm ci
           npm install -g vsce
           vsce package
