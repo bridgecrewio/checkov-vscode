@@ -17,11 +17,10 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: 14
       - name: Publish to Marketplace
         run: |
-          npm config delete prefix 
           npm ci
-          npm install -g --unsafe-perm vsce
+          npm install -g vsce
           vsce package
           vsce publish -p ${{ secrets.VSCODE_MARKETPLACE_TOKEN }}
