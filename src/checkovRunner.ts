@@ -141,8 +141,7 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
 
 const parseCheckovResponse = (rawResponse: CheckovResponseRaw | SuccessResponseRaw, useBcIds: boolean | undefined): CheckovResponse => {
 
-    let failedChecks: FailedCheckovCheckRaw[];
-    if (!rawResponse.results) {
+    if (!(Array.isArray(rawResponse) || rawResponse.results)) {
         if  (rawResponse.resource_count === 0) {
             return {
                 results: {
@@ -154,6 +153,7 @@ const parseCheckovResponse = (rawResponse: CheckovResponseRaw | SuccessResponseR
         }
     }
 
+    let failedChecks: FailedCheckovCheckRaw[];
     if (Array.isArray(rawResponse)) {
         failedChecks = rawResponse.reduce((res, val) => res.concat(val.results.failed_checks), []);
     }
