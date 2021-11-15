@@ -38,6 +38,12 @@ export const getUseBcIds = (): boolean | undefined => {
     return useBcIds;
 };
 
+export const getUseDebugLogs = (): boolean | undefined => {
+    const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('checkov');
+    const useDebugLogs = configuration.get<boolean>('useDebugLogs', false);
+    return useDebugLogs;
+};
+
 export const getCheckovVersion = (): string => {
 
     const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('checkov');
