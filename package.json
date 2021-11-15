@@ -91,6 +91,11 @@
           "title": "Prisma app URL",
           "markdownDescription": "URL of your Prisma Cloud application API. (e.g., https://api.my-app.prismacloud.io)    \n [Required] if you are using Prisma Cloud access key",
           "type": "string"
+        },
+        "checkov.useDebugLogs": {
+          "title": "Use debug logs",
+          "markdownDescription": "Whether to print debug logs from Checkov for troubleshooting",
+          "type": "boolean"
         }
       }
     }
