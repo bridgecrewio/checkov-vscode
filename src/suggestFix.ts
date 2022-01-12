@@ -18,7 +18,7 @@ const generateSkipComment = (checkId: string) => `\t# checkov:skip=${checkId}: A
 const createCommandCodeAction = (document: vscode.TextDocument, diagnostic: vscode.Diagnostic, checkovCheck: FailedCheckovCheck): vscode.CodeAction[] => {
     const skipEdit: vscode.WorkspaceEdit = new vscode.WorkspaceEdit();
     skipEdit.insert(document.uri, document.lineAt(checkovCheck.fileLineRange[0]).range.start, generateSkipComment(checkovCheck.checkId));
-    const actions: vscode.CodeAction[] = [
+    const skipCommand = checkovCheck.checkId.includes('_K8S_') ? [] : [
         {
             title: `Generate skip comment for - ${checkovCheck.checkName}`,
             kind: vscode.CodeActionKind.QuickFix,
@@ -29,7 +29,10 @@ const createCommandCodeAction = (document: vscode.TextDocument, diagnostic: vsco
                 title: 'Generate skip comment',
                 command: REMOVE_DIAGNOSTICS_COMMAND
             }
-        },
+        }
+    ];
+    const actions: vscode.CodeAction[] = [
+        ...skipCommand,
         {
             title: `Learn more about - ${checkovCheck.checkName}`,
             kind: vscode.CodeActionKind.Empty,
