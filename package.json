@@ -1,6 +1,6 @@
 {
   "name": "checkov",
-  "version": "1.0.65",
+  "version": "1.0.67",
   "displayName": "Checkov",
   "publisher": "Bridgecrew",
   "description": "Find and fix misconfigurations in infrastructure-as-code manifests like Terraform, Kubernetes, Cloudformation, Serverless framework, Arm templates using Checkov - static analysis for infrastructure as code .",
@@ -114,8 +114,8 @@
     "@types/js-yaml": "^4.0.1",
     "@types/lodash": "^4.14.168",
     "@types/mocha": "^8.0.0",
-    "@types/semver": "^7.3.8",
     "@types/node": "^12.11.7",
+    "@types/semver": "^7.3.9",
     "@types/vscode": "^1.48.2",
     "@typescript-eslint/eslint-plugin": "^4.1.1",
     "@typescript-eslint/parser": "^4.1.1",
