@@ -128,6 +128,7 @@
   "dependencies": {
     "lodash": "^4.17.21",
     "semver": "^7.3.5",
-    "winston": "^3.3.3"
+    "winston": "^3.3.3",
+    "compare-versions": "^4.1.3"
   }
 }
