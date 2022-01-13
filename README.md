@@ -65,6 +65,7 @@ The Checkov extension will invoke the latest version of ```Checkov```.
 To access checkov-vscode logs directory, open the VSCODE Command Palette `(Ctrl+Shift+P)`, run the command `Developer: Open Extensions Logs Folder`, and the log file should be inside the `Bridgecrew.checkov` folder.
 
 ### Common Issues
+
 #### Docker file access permissions on MacOS
 
 If you are getting failures and are running the Checkov extension via Docker, it's possible MacOS needs to give Docker permission to access the directory location of your code.
