@@ -71,8 +71,11 @@ export const getCheckovVersion = (): string => {
     }
 };
 
-export const verifyPythonVersion = async (logger: Logger): Promise<void> => {
-    const [pythonVersionResponse] = await asyncExec('python --version');
+export const verifyPythonVersion = async (logger: Logger, command = 'python3 --version'): Promise<void> => {
+    logger.debug(`Getting python version with command: ${command}`);
+    const [pythonVersionResponse] = await asyncExec(command);
+    logger.debug('Raw output:');
+    logger.debug(pythonVersionResponse);
     const pythonVersion = pythonVersionResponse.split(' ')[1];
     logger.debug(`Python version: ${pythonVersion}`);
     if (semver.lt(pythonVersion, minPythonVersion)){
