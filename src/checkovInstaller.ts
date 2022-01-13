@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as os from 'os';
 import { Logger } from 'winston';
 import { asyncExec, isWindows } from './utils';
+import { verifyPythonVersion } from './configuration';
 
 const isPipCheckovInstalledGlobally = async () => {
     try {
@@ -37,6 +38,7 @@ const installOrUpdateCheckovWithPip3 = async (logger: Logger, checkovVersion: st
     logger.info('Trying to install Checkov using pip3.');
 
     try {
+        await verifyPythonVersion(logger);
         const command = `pip3 install --user -U -i https://pypi.org/simple/ checkov${checkovVersion === 'latest' ? '' : `==${checkovVersion}`}`;
         logger.debug(`Testing pip3 installation with command: ${command}`);
         await asyncExec(command);
@@ -75,6 +77,7 @@ const installOrUpdateCheckovWithPipenv = async (logger: Logger, installationDir:
         fs.mkdirSync(installationDir, { recursive: true });
         logger.debug(`Installation dir: ${installationDir}`);
         const installCommand = `pipenv --python 3 install checkov${checkovVersion && checkovVersion.toLowerCase() !== 'latest' ? `==${checkovVersion}` : '~=2.0.0'}`;
+        await verifyPythonVersion(logger, 'pipenv run python --version');
         logger.debug(`Testing pipenv installation with command: ${installCommand}`);
         await asyncExec(installCommand, { cwd: installationDir });
 

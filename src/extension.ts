@@ -8,7 +8,7 @@ import { applyDiagnostics } from './diagnostics';
 import { fixCodeActionProvider, providedCodeActionKinds } from './suggestFix';
 import { getLogger, saveCheckovResult, isSupportedFileType, extensionVersion, runVersionCommand } from './utils';
 import { initializeStatusBarItem, setErrorStatusBarItem, setPassedStatusBarItem, setReadyStatusBarItem, setSyncingStatusBarItem, showAboutCheckovMessage, showContactUsDetails } from './userInterface';
-import { assureTokenSet, getCheckovVersion, shouldDisableErrorMessage, getPathToCert, getUseBcIds, getPrismaUrl, getUseDebugLogs, verifyPythonVersion } from './configuration';
+import { assureTokenSet, getCheckovVersion, shouldDisableErrorMessage, getPathToCert, getUseBcIds, getPrismaUrl, getUseDebugLogs } from './configuration';
 import { GET_INSTALLATION_DETAILS_COMMAND, INSTALL_OR_UPDATE_CHECKOV_COMMAND, OPEN_CHECKOV_LOG, OPEN_CONFIGURATION_COMMAND, OPEN_EXTERNAL_COMMAND, REMOVE_DIAGNOSTICS_COMMAND, RUN_FILE_SCAN_COMMAND } from './commands';
 import { getConfigFilePath } from './parseCheckovConfig';
 
@@ -43,7 +43,6 @@ export function activate(context: vscode.ExtensionContext): void {
             try {
                 extensionReady = false;
                 setSyncingStatusBarItem(checkovInstallation?.version, 'Updating Checkov');
-                await verifyPythonVersion(logger);
                 const checkovVersion = getCheckovVersion();
                 checkovInstallation = await installOrUpdateCheckov(logger, checkovInstallationDir, checkovVersion);
                 logger.info('Checkov installation: ', checkovInstallation);
