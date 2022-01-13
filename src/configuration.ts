@@ -4,8 +4,10 @@ import { setMissingConfigurationStatusBarItem } from './userInterface';
 import * as semver from 'semver';
 import { CheckovInstallation } from './checkovInstaller';
 import { getTokenType } from './utils';
+import { asyncExec } from './utils';
 
 const minCheckovVersion = '2.0.0';
+const minPythonVersion = '3.7.0';
 
 export const assureTokenSet = (logger: Logger, openConfigurationCommand: string, checkovInstallation: CheckovInstallation | null): string | undefined => {
     // Read configuration
@@ -66,6 +68,15 @@ export const getCheckovVersion = (): string => {
         }
 
         return clean;
+    }
+};
+
+export const verifyPythonVersion = async (logger: Logger): Promise<void> => {
+    const [pythonVersionResponse] = await asyncExec('python --version');
+    const pythonVersion = pythonVersionResponse.split(' ')[1];
+    logger.debug(`Python version: ${pythonVersion}`);
+    if (semver.lt(pythonVersion, minPythonVersion)){
+        throw Error(`Invalid python version: ${pythonVersion} (must be >=${minPythonVersion})`);
     }
 };
 
