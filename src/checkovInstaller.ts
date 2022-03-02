@@ -125,5 +125,15 @@ export const installOrUpdateCheckov = async (logger: Logger, installationDir: st
     const pipenvCheckovPath = await installOrUpdateCheckovWithPipenv(logger, installationDir, checkovVersion);
     if (pipenvCheckovPath) return { checkovInstallationMethod: 'pipenv' , checkovPath: pipenvCheckovPath };
 
+    logger.warn('All installation / update methods failed; attempting to fall back to a global checkov installation');
+
+    if (await isPipCheckovInstalledGlobally()) {
+        logger.warn('Checkov appears to be installed globally, so it will be used. However, it may be an outdated version.');
+        // it could be installed manually via pip, brew, or something else. this return value will make it just use the `checkov` command.
+        return { checkovInstallationMethod: 'pip3' , checkovPath: 'checkov' };
+    } else {
+        logger.error('Could not find a global `checkov` executable either');
+    }
+
     throw new Error('Could not install Checkov.');
 };
