@@ -37,23 +37,36 @@ const getPipCheckovExecutablePath = async (logger: Logger): Promise<string> => {
 const installOrUpdateCheckovWithPip3 = async (logger: Logger, checkovVersion: string): Promise<string | null> => {
     logger.info('Trying to install Checkov using pip3.');
 
-    try {
-        await verifyPythonVersion(logger);
-        const command = `pip3 install --user -U -i https://pypi.org/simple/ checkov${checkovVersion === 'latest' ? '' : `==${checkovVersion}`}`;
-        logger.debug(`Testing pip3 installation with command: ${command}`);
-        await asyncExec(command);
+    let firstTry = true;
+    let pythonExe = 'python3';
+    let pipExe = 'pip3';
 
-        let checkovPath;
-        if (await isPipCheckovInstalledGlobally()) {
-            checkovPath = 'checkov';
-        } else {
-            checkovPath = await getPipCheckovExecutablePath(logger);
+    while (true) {
+        try {
+            await verifyPythonVersion(logger, `${pythonExe} --version`);
+            const command = `${pipExe} install --user -U -i https://pypi.org/simple/ checkov${checkovVersion === 'latest' ? '' : `==${checkovVersion}`}`;
+            logger.debug(`Testing pip[3] installation with command: ${command}`);
+            await asyncExec(command);
+
+            let checkovPath;
+            if (await isPipCheckovInstalledGlobally()) {
+                checkovPath = 'checkov';
+            } else {
+                checkovPath = await getPipCheckovExecutablePath(logger);
+            }
+            logger.info(`Checkov installed successfully using ${pipExe}.`, { checkovPath });
+            return checkovPath;
+        } catch (error) {
+            logger.error(`Failed to install or update Checkov using ${pipExe}. Error:`, { error });
+            if (firstTry) {
+                logger.info('Retrying using `python` and `pip`');
+                pythonExe = 'python';
+                pipExe = 'pip';
+                firstTry = false;
+            } else {
+                return null;
+            }
         }
-        logger.info('Checkov installed successfully using pip3.', { checkovPath });
-        return checkovPath;
-    } catch (error) {
-        logger.error('Failed to install or update Checkov using pip3. Error:', { error });
-        return null;
     }
 };
 
