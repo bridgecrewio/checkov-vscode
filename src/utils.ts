@@ -10,6 +10,12 @@ import * as path from 'path';
 const extensionData = vscode.extensions.getExtension('bridgecrew.checkov');
 export const extensionVersion = extensionData ? extensionData.packageJSON.version : 'unknown';
 const defaultRepoName = 'vscode/extension';
+
+// UUID regex
+const bridgecrewApiKeyRegex = /^[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}$/;
+// UUID::base64 regex from https://regexland.com/base64/
+const prismaApiKeyRegex = /^[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}::(?:[A-Za-z\d+/]{4})*(?:[A-Za-z\d+/]{3}=|[A-Za-z\d+/]{2}==)?$/;
+
 // Matches the following URLs with group 4 == 'org/repo':
 // git://github.com/org/repo.git
 // git@github.com:org/repo.git
@@ -21,7 +27,7 @@ const defaultRepoName = 'vscode/extension';
 
 export const isWindows = process.platform === 'win32';
 
-export type TokenType = 'bc-token' | 'prisma';
+export type TokenType = 'bc-token' | 'prisma' | null;
 
 type ExecOutput = [stdout: string, stderr: string];
 export const asyncExec = async (commandToExecute: string, options: ExecOptions = {}): Promise<ExecOutput> => {
@@ -192,7 +198,15 @@ const parseRepoName = (repoUrl: string): string | null => {
     // return result ? result[4] : null;
 };
 
-export const getTokenType = (token: string): TokenType => token.includes('::') ? 'prisma' : 'bc-token';
+export const getTokenType = (token: string): TokenType => {
+    if (bridgecrewApiKeyRegex.test(token)) {
+        return 'bc-token';
+    } else if (prismaApiKeyRegex.test(token)) {
+        return 'prisma';
+    } else {
+        return null;
+    }
+};
 
 export const normalizePath = (filePath: string): string[] => {
     const absPath = path.resolve(filePath);

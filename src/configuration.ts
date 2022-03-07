@@ -18,11 +18,20 @@ export const assureTokenSet = (logger: Logger, openConfigurationCommand: string,
         vscode.window.showErrorMessage('Bridgecrew API token was not found. Please add it to the configuration in order to scan your code.', 'Open configuration')
             .then(choice => choice === 'Open configuration' && vscode.commands.executeCommand(openConfigurationCommand));
         setMissingConfigurationStatusBarItem(checkovInstallation?.version);
-    } else if (getTokenType(token) === 'prisma' && !getPrismaUrl()) {
-        logger.error('Prisma token was identified but no Prisma URL was found');
-        vscode.window.showErrorMessage('Prisma token was identified but no Prisma URL was found. In order to authenticate with your app you must provide Prisma URL', 'Open configuration')
-            .then(choice => choice === 'Open configuration' && vscode.commands.executeCommand(openConfigurationCommand));
-        setMissingConfigurationStatusBarItem(checkovInstallation?.version);
+    } else {
+        const tokenType = getTokenType(token);
+        logger.debug(`Token type: ${tokenType}`);
+        if (!tokenType) {
+            logger.error('API token does not appear to be a valid Bridgecrew or Prisma API key. Please verify the value and try again.');
+            vscode.window.showErrorMessage('API token does not appear to be a valid Bridgecrew or Prisma API key. Please verify the value and try again.', 'Open configuration')
+                .then(choice => choice === 'Open configuration' && vscode.commands.executeCommand(openConfigurationCommand));
+            setMissingConfigurationStatusBarItem(checkovInstallation?.version);
+        } else if (tokenType === 'prisma' && !getPrismaUrl()) {
+            logger.error('Prisma token was identified but no Prisma URL was found');
+            vscode.window.showErrorMessage('Prisma token was identified but no Prisma URL was found. In order to authenticate with your app you must provide Prisma URL', 'Open configuration')
+                .then(choice => choice === 'Open configuration' && vscode.commands.executeCommand(openConfigurationCommand));
+            setMissingConfigurationStatusBarItem(checkovInstallation?.version);
+        }
     }
 
     return token;
