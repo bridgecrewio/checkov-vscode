@@ -193,3 +193,8 @@ const parseRepoName = (repoUrl: string): string | null => {
 };
 
 export const getTokenType = (token: string): TokenType => token.includes('::') ? 'prisma' : 'bc-token';
+
+export const normalizePath = (filePath: string): string[] => {
+    const absPath = path.resolve(filePath);
+    return [path.basename(absPath), absPath];
+};
