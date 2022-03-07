@@ -52,7 +52,7 @@ const getDockerFileMountParams = (mountDir: string, filePath: string | undefined
 
     const [baseName, absPath] = normalizePath(filePath);
 
-    return ['-v', `"${absPath}:${path.join(mountDir, baseName)}"`];
+    return ['-v', `"${absPath}:${mountDir}/${baseName}"`];
 };
 
 const getDockerRunParams = (workspaceRoot: string | undefined, filePath: string, extensionVersion: string, configFilePath: string | undefined, checkovVersion: string | undefined, prismaUrl: string | undefined, certPath: string | undefined, debugLogs: boolean | undefined) => {
@@ -66,10 +66,10 @@ const getDockerRunParams = (workspaceRoot: string | undefined, filePath: string,
     const debugLogParams = debugLogs ? ['--env', 'LOG_LEVEL=DEBUG'] : [];
 
     const caCertDockerParams = getDockerFileMountParams(caMountDir, certPath);
-    const caCertCheckovParams = certPath ? ['--ca-certificate', path.join(caMountDir, path.basename(certPath))] : [];
+    const caCertCheckovParams = certPath ? ['--ca-certificate', `"${caMountDir}/${path.basename(certPath)}"`] : [];
 
     const configFileDockerParams = getDockerFileMountParams(configMountDir, configFilePath);
-    const configFileCheckovParams = configFilePath ? ['--config-file', path.join(configMountDir, path.basename(configFilePath))] : [];
+    const configFileCheckovParams = configFilePath ? ['--config-file', `"${configMountDir}/${path.basename(configFilePath)}"`] : [];
     
     const dockerParams = ['run', '--rm', '--tty', ...prismaUrlParams, ...debugLogParams, '--env', 'BC_SOURCE=vscode', '--env', `BC_SOURCE_VERSION=${extensionVersion}`,
         '-v', `"${mountRoot}:${dockerMountDir}"`, ...caCertDockerParams, ...configFileDockerParams, '-w', dockerMountDir];
