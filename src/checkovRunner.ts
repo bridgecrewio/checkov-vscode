@@ -3,7 +3,7 @@ import { spawn } from 'child_process';
 import * as path from 'path';
 import { Logger } from 'winston';
 import { CheckovInstallation } from './checkovInstaller';
-import { convertToUnixPath, getGitRepoName, getDockerPathParams, runVersionCommand } from './utils';
+import { convertToUnixPath, getGitRepoName, getDockerPathParams, runVersionCommand, normalizePath } from './utils';
 
 export interface FailedCheckovCheck {
     checkId: string;
@@ -43,8 +43,19 @@ interface CheckovResponseRaw {
 
 const dockerMountDir = '/checkovScan';
 const configMountDir = '/checkovConfig';
+const caMountDir = '/checkovCert';
 
-const getDockerRunParams = (workspaceRoot: string | undefined, filePath: string, extensionVersion: string, configFilePath: string | null, checkovVersion: string | undefined, prismaUrl: string | undefined, debugLogs: boolean | undefined) => {
+const getDockerFileMountParams = (mountDir: string, filePath: string | undefined): string[] => {
+    if (!filePath) {
+        return [];
+    }
+
+    const [baseName, absPath] = normalizePath(filePath);
+
+    return ['-v', `"${absPath}:${mountDir}/${baseName}"`];
+};
+
+const getDockerRunParams = (workspaceRoot: string | undefined, filePath: string, extensionVersion: string, configFilePath: string | undefined, checkovVersion: string | undefined, prismaUrl: string | undefined, certPath: string | undefined, debugLogs: boolean | undefined) => {
     const image = `bridgecrew/checkov:${checkovVersion}`;
     const pathParams = getDockerPathParams(workspaceRoot, filePath);
     // if filepath is within the workspace, then the mount root will be the workspace path, and the file path will be the relative file path from there.
@@ -53,29 +64,33 @@ const getDockerRunParams = (workspaceRoot: string | undefined, filePath: string,
     const filePathToScan = convertToUnixPath(pathParams[0] ? pathParams[1] : path.basename(filePath));
     const prismaUrlParams = prismaUrl ? ['--env', `PRISMA_API_URL=${prismaUrl}`] : [];
     const debugLogParams = debugLogs ? ['--env', 'LOG_LEVEL=DEBUG'] : [];
-    const params = ['run', '--rm', '--tty', ...prismaUrlParams, ...debugLogParams, '--env', 'BC_SOURCE=vscode', '--env', `BC_SOURCE_VERSION=${extensionVersion}`,
-        '-v', `"${mountRoot}:${dockerMountDir}"`, '-w', dockerMountDir];
+
+    const caCertDockerParams = getDockerFileMountParams(caMountDir, certPath);
+    const caCertCheckovParams = certPath ? ['--ca-certificate', `"${caMountDir}/${path.basename(certPath)}"`] : [];
+
+    const configFileDockerParams = getDockerFileMountParams(configMountDir, configFilePath);
+    const configFileCheckovParams = configFilePath ? ['--config-file', `"${configMountDir}/${path.basename(configFilePath)}"`] : [];
     
-    return configFilePath ?
-        [...params, '-v', `"${path.dirname(configFilePath)}:${configMountDir}"`, image, 
-            '--config-file', `${configMountDir}/${path.basename(configFilePath)}`, '-f', filePathToScan] :
-        [...params, image, '-f', filePathToScan];
+    const dockerParams = ['run', '--rm', '--tty', ...prismaUrlParams, ...debugLogParams, '--env', 'BC_SOURCE=vscode', '--env', `BC_SOURCE_VERSION=${extensionVersion}`,
+        '-v', `"${mountRoot}:${dockerMountDir}"`, ...caCertDockerParams, ...configFileDockerParams, '-w', dockerMountDir];
+    
+    return [...dockerParams, image, ...configFileCheckovParams, ...caCertCheckovParams, '-f', filePathToScan];
 };
 
-const getpipRunParams = (configFilePath: string | null) => {
+const getpipRunParams = (configFilePath: string | undefined) => {
     return configFilePath ? ['--config-file', configFilePath] : [];
 };
 
 const cleanupStdout = (stdout: string) => stdout.replace(/.\[0m/g,''); // Clean docker run ANSI escapse chars
 
 export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInstallation, extensionVersion: string, fileName: string, token: string, 
-    certPath: string | undefined, useBcIds: boolean | undefined, debugLogs: boolean | undefined, cancelToken: vscode.CancellationToken, configPath: string | null, checkovVersion: string, prismaUrl: string | undefined): Promise<CheckovResponse> => {
+    certPath: string | undefined, useBcIds: boolean | undefined, debugLogs: boolean | undefined, cancelToken: vscode.CancellationToken, configPath: string | undefined, checkovVersion: string, prismaUrl: string | undefined): Promise<CheckovResponse> => {
     return new Promise((resolve, reject) => {   
         const { checkovInstallationMethod, checkovPath } = checkovInstallation;
-        const dockerRunParams = checkovInstallationMethod === 'docker' ? getDockerRunParams(vscode.workspace.rootPath, fileName, extensionVersion, configPath, checkovInstallation.version, prismaUrl, debugLogs) : [];
+        const dockerRunParams = checkovInstallationMethod === 'docker' ? getDockerRunParams(vscode.workspace.rootPath, fileName, extensionVersion, configPath, checkovInstallation.version, prismaUrl, certPath, debugLogs) : [];
         const pipRunParams =  ['pipenv', 'pip3'].includes(checkovInstallationMethod) ? getpipRunParams(configPath) : [];
         const filePathParams = checkovInstallationMethod === 'docker' ? [] : ['-f', `"${fileName}"`];
-        const certificateParams: string[] = certPath ? ['-ca', `"${certPath}"`] : [];
+        const certificateParams: string[] = certPath && checkovInstallationMethod !== 'docker' ? ['-ca', `"${certPath}"`] : [];
         const bcIdParam: string[] = useBcIds ? ['--output-bc-ids'] : [];
         const workingDir = vscode.workspace.rootPath;
         getGitRepoName(logger, vscode.window.activeTextEditor?.document.fileName).then((repoName) => {

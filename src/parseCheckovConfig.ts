@@ -4,7 +4,7 @@ import { Logger } from 'winston';
 import { getWorkspacePath } from './utils';
 
 
-export const getConfigFilePath = (logger: Logger): string | null => {
+export const getConfigFilePath = (logger: Logger): string | undefined => {
     const workspacePath = getWorkspacePath(logger);
     if (workspacePath) {
         const paths =  [path.join(workspacePath, '.checkov.yml'), path.join(workspacePath, '.checkov.yaml')];
@@ -12,7 +12,7 @@ export const getConfigFilePath = (logger: Logger): string | null => {
             if(existsSync(path)) return path;
         }
     }
-    return null;
+    return undefined;
 };
 
 
