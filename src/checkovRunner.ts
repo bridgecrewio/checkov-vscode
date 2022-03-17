@@ -10,7 +10,7 @@ export interface FailedCheckovCheck {
     checkName: string;
     fileLineRange: [number, number];
     resource: string;
-    guideline: string;
+    guideline?: string;
     fixedDefinition?: string;
 }
 
@@ -31,7 +31,8 @@ interface FailedCheckovCheckRaw {
     check_name: string;
     file_line_range: [number, number];
     resource: string;
-    guideline: string;
+    guideline?: string;
+    description?: string;
     fixed_definition?: string;
 }
 
@@ -158,7 +159,6 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
 };
 
 const parseCheckovResponse = (rawResponse: CheckovResponseRaw | SuccessResponseRaw, useBcIds: boolean | undefined): CheckovResponse => {
-
     if (!(Array.isArray(rawResponse) || rawResponse.results)) {
         if  (rawResponse.resource_count === 0) {
             return {
@@ -186,7 +186,7 @@ const parseCheckovResponse = (rawResponse: CheckovResponseRaw | SuccessResponseR
                 checkName: rawCheck.check_name,
                 fileLineRange: rawCheck.file_line_range,
                 resource: rawCheck.resource,
-                guideline: rawCheck.guideline,
+                guideline: rawCheck.guideline || rawCheck.description,
                 fixedDefinition: rawCheck.fixed_definition
             }))
         }

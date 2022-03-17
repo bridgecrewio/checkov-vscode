@@ -35,7 +35,7 @@ export const asyncExec = async (commandToExecute: string, options: ExecOptions =
 };
 
 export const isSupportedFileType = (fileName: string, showMessage = false): boolean => {
-    if (!(fileName.endsWith('.tf') || fileName.endsWith('.yml') || fileName.endsWith('.yaml') || fileName.endsWith('.json') || fileName.match('Dockerfile'))) {
+    if (!(fileName.endsWith('.tf') || fileName.endsWith('.yml') || fileName.endsWith('.yaml') || fileName.endsWith('.json') || fileName.match('Dockerfile') || fileName.endsWith('.gradle')  || fileName.endsWith('.gradle.kts')  || fileName.endsWith('.sum')  || fileName.endsWith('.properties')  || fileName.endsWith('.xml')  || fileName.endsWith('.txt') || fileName.match('METADATA'))) {
         showMessage && showUnsupportedFileMessage();
         return false;
     }
