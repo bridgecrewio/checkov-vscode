@@ -2,8 +2,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { Logger } from 'winston';
-import { asyncExec, isWindows } from './utils';
-import { verifyPythonVersion } from './configuration';
+import { asyncExec, isWindows } from '../utils';
+import { verifyPythonVersion } from '../configuration';
 
 const isPipCheckovInstalledGlobally = async () => {
     try {

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { exec, ExecOptions } from 'child_process';
 import winston from 'winston';
-import { FailedCheckovCheck } from './checkovRunner';
+import { FailedCheckovCheck } from './checkov';
 import { DiagnosticReferenceCode } from './diagnostics';
 import { CHECKOV_MAP } from './extension';
 import { showUnsupportedFileMessage } from './userInterface';
