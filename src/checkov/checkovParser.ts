@@ -33,6 +33,16 @@ const resultParsersByType: { [parser: string]: (options: ParserOptions) => Parse
     default: resultParserDefault
 };
 
+const getFailedChecks = (checkovResponse: CheckovResponseRaw, useBcIds: boolean | undefined): FailedCheckovCheck[] => {
+    const responseByType: CheckovResponseRaw[] = Array.isArray(checkovResponse) ? checkovResponse : [checkovResponse];
+
+    return responseByType.reduce((result, current) => {
+        const parser: ParserFunction = (resultParsersByType[current.results.check_type] || resultParsersByType.default)({ useBcIds });
+        const parsedChecks: FailedCheckovCheck[] = current.results.failed_checks.map(parser);
+        return [...result, ...parsedChecks];
+    }, [] as FailedCheckovCheck[]);
+};
+
 export const parseCheckovResponse = (rawResponse: CheckovResponseRaw | SuccessResponseRaw, useBcIds: boolean | undefined): CheckovResponse => {
     if (!(Array.isArray(rawResponse) || rawResponse.results)) {
         if  (rawResponse.resource_count === 0) {
@@ -46,18 +56,9 @@ export const parseCheckovResponse = (rawResponse: CheckovResponseRaw | SuccessRe
         }
     }
 
-    let failedChecks: FailedCheckovCheckRaw[];
-    if (Array.isArray(rawResponse)) {
-        failedChecks = rawResponse.reduce((res, val) => res.concat(val.results.failed_checks), []);
-    }
-    else {
-        failedChecks = rawResponse.results.failed_checks;
-    }
-
-    const parser: ParserFunction = (resultParsersByType[rawResponse.check_type] || resultParsersByType.default)({ useBcIds });
     return {
         results: {
-            failedChecks: failedChecks.map(parser)
+            failedChecks: getFailedChecks(rawResponse as CheckovResponseRaw, useBcIds)
         }
     };
 };

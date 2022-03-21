@@ -13,8 +13,6 @@ export interface CheckovResponse {
     };
 }
 
-
-
 export interface FailedCheckovCheckRaw {
     check_id: string;
     bc_check_id: string | undefined;
