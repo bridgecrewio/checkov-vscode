@@ -94,8 +94,9 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
         const bcIdParam: string[] = useBcIds ? ['--output-bc-ids'] : [];
         const workingDir = vscode.workspace.rootPath;
         getGitRepoName(logger, vscode.window.activeTextEditor?.document.fileName).then((repoName) => {
-            const checkovArguments: string[] = [...dockerRunParams, ...certificateParams, ...bcIdParam, '-s', '--bc-api-key', token, '--repo-id', 
-                repoName, ...filePathParams, '-o', 'json', ...pipRunParams];
+            const repoIdParams = repoName ? ['--repo-id', repoName] : [];
+            const checkovArguments: string[] = [...dockerRunParams, ...certificateParams, ...bcIdParam, '-s', '--bc-api-key', token, 
+                ...repoIdParams, ...filePathParams, '-o', 'json', ...pipRunParams];
             logger.info('Running checkov:');
             logger.info(`${checkovPath} ${checkovArguments.map(argument => argument === token ? '****' : argument).join(' ')}`);
         

@@ -9,7 +9,7 @@ import * as path from 'path';
 
 const extensionData = vscode.extensions.getExtension('bridgecrew.checkov');
 export const extensionVersion = extensionData ? extensionData.packageJSON.version : 'unknown';
-const defaultRepoName = 'vscode/extension';
+
 // Matches the following URLs with group 4 == 'org/repo':
 // git://github.com/org/repo.git
 // git@github.com:org/repo.git
@@ -114,18 +114,18 @@ export const runVersionCommand = async (logger: winston.Logger, checkovPath: str
     return resp[0].trim();
 };
 
-export const getGitRepoName = async (logger: winston.Logger, filename: string | undefined): Promise<string> => {
+export const getGitRepoName = async (logger: winston.Logger, filename: string | undefined): Promise<string | null> => {
     if (!filename) {
         logger.debug('Filename was empty when getting git repo; returning default');
-        return defaultRepoName;
+        return null;
     }
     const cwd = path.dirname(filename);
     try {
         const output = await asyncExec('git remote -v', { cwd });
 
         if (output[1]) {
-            logger.info(`Got stderr output when getting git repo; returning default. Output: ${output[1]}`);
-            return defaultRepoName;
+            logger.info(`Got stderr output when getting git repo; returning null. Output: ${output[1]}`);
+            return null;
         }
         logger.debug(`Output:\n${output[0]}`);
 
@@ -155,11 +155,11 @@ export const getGitRepoName = async (logger: winston.Logger, filename: string | 
             }
         }
 
-        logger.debug('Did not find any valid repo URL in the "git remote -v" output; returning default');
+        logger.debug('Did not find any valid repo URL in the "git remote -v" output; returning null');
     } catch (error) {
-        logger.debug('git remote -v command failed; returning default', error);
+        logger.debug('git remote -v command failed; returning null', error);
     }
-    return defaultRepoName;
+    return null;
 };
 
 export const getDockerPathParams = (workspaceRoot: string | undefined, filePath: string): [string | null, string] => {
@@ -184,7 +184,12 @@ const parseRepoName = (repoUrl: string): string | null => {
     }
 
     const endsWithDotGit = repoUrl.endsWith('.git');
-    return repoUrl.substring(Math.max(priorSlash, priorColon) + 1, endsWithDotGit ? repoUrl.length - 4 : repoUrl.length);
+    const repoName = repoUrl.substring(Math.max(priorSlash, priorColon) + 1, endsWithDotGit ? repoUrl.length - 4 : repoUrl.length);
+
+    // handle VCSes with less standard git remote URLs (uhh, looking at you CodeCommit)
+    // example: codecommit::us-west-2://repo_name
+    // gets parsed as `/repo_name` and there is no good value to use as the repo "org"
+    return repoName.split('/').some(s => s === '') ? null : repoName;
 
     // Commenting out for now, because the code above is a temporary workaround to the case where the git server
     // is not hosted at the root level (e.g., https://company.example.com/git)
