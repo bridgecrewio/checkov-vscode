@@ -133,7 +133,15 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
                 try {
                     if (cancelToken.isCancellationRequested) return reject('Cancel invoked');
                     logger.debug(`Checkov scan process exited with code ${code}`);
-                    logger.debug('Checkov task output:', { stdout });
+                    
+                    try {
+                        const results = JSON.parse(stdout);
+                        logger.debug('Checkov task output:');
+                        logger.debug(JSON.stringify(results, null, 2));
+                    } catch (err) {
+                        logger.debug('Checkov task output:', { stdout });
+                    }
+
                     if (code !== 0) return reject(`Checkov exited with code ${code}`);
 
                     if (stdout.startsWith('[]')) {
