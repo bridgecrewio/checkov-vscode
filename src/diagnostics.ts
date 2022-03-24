@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { FailedCheckovCheck } from './checkovRunner';
+import { FailedCheckovCheck } from './checkov';
 
 export interface DiagnosticReferenceCode {
     target: vscode.Uri;
@@ -10,7 +10,7 @@ export const applyDiagnostics = (document: vscode.TextDocument, diagnostics: vsc
     const foundDiagnostics: vscode.Diagnostic[] = [];
 
     for (const failure of failedCheckovChecks) {
-        const line = document.lineAt(failure.fileLineRange[0] - 1); // checkov results are 1-based; these lines are 0-based
+        const line = document.lineAt(failure.fileLineRange[0] > 0 ? failure.fileLineRange[0] - 1 : 0); // checkov results are 1-based; these lines are 0-based
         const startPos = line.range.start.translate({ characterDelta: line.firstNonWhitespaceCharacterIndex });
         const code: DiagnosticReferenceCode | string =
             failure.guideline?.startsWith('http') ? 

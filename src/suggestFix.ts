@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { FailedCheckovCheck } from './checkovRunner';
+import { FailedCheckovCheck } from './checkov';
 import { OPEN_EXTERNAL_COMMAND, REMOVE_DIAGNOSTICS_COMMAND } from './commands';
 import { DiagnosticReferenceCode } from './diagnostics';
 import { CHECKOV_MAP } from './extension';

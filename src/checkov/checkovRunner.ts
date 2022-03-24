@@ -3,43 +3,11 @@ import { spawn } from 'child_process';
 import * as path from 'path';
 import { Logger } from 'winston';
 import { CheckovInstallation } from './checkovInstaller';
-import { convertToUnixPath, getGitRepoName, getDockerPathParams, runVersionCommand, normalizePath } from './utils';
+import { convertToUnixPath, getGitRepoName, getDockerPathParams, runVersionCommand, normalizePath } from '../utils';
+import { CheckovResponse, CheckovResponseRaw } from './models';
+import { parseCheckovResponse } from './checkovParser';
 
-export interface FailedCheckovCheck {
-    checkId: string;
-    checkName: string;
-    fileLineRange: [number, number];
-    resource: string;
-    guideline: string;
-    fixedDefinition?: string;
-}
 
-interface CheckovResponse {
-    results: {
-        failedChecks: FailedCheckovCheck[];
-    };
-}
-
-interface SuccessResponseRaw {
-    resource_count: 0;
-    results: undefined;
-}
-
-interface FailedCheckovCheckRaw {
-    check_id: string;
-    bc_check_id: string | undefined;
-    check_name: string;
-    file_line_range: [number, number];
-    resource: string;
-    guideline: string;
-    fixed_definition?: string;
-}
-
-interface CheckovResponseRaw {
-    results: {
-        failed_checks: FailedCheckovCheckRaw[];
-    };
-}
 
 const dockerMountDir = '/checkovScan';
 const configMountDir = '/checkovConfig';
@@ -71,7 +39,7 @@ const getDockerRunParams = (workspaceRoot: string | undefined, filePath: string,
     const configFileDockerParams = getDockerFileMountParams(configMountDir, configFilePath);
     const configFileCheckovParams = configFilePath ? ['--config-file', `"${configMountDir}/${path.basename(configFilePath)}"`] : [];
     
-    const dockerParams = ['run', '--rm', '--tty', ...prismaUrlParams, ...debugLogParams, '--env', 'BC_SOURCE=vscode', '--env', `BC_SOURCE_VERSION=${extensionVersion}`,
+    const dockerParams = ['run', '--rm', '--tty', ...prismaUrlParams, ...debugLogParams, '--env', 'BC_SOURCE=vscode', '--env', `BC_SOURCE_VERSION=${extensionVersion}`, '--env', 'ENABLE_SCA_PACKAGE_SCAN=true',
         '-v', `"${mountRoot}:${dockerMountDir}"`, ...caCertDockerParams, ...configFileDockerParams, '-w', dockerMountDir];
     
     return [...dockerParams, image, ...configFileCheckovParams, ...caCertCheckovParams, '-f', filePathToScan];
@@ -107,7 +75,7 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
             const ckv = spawn(checkovPath, checkovArguments,
                 {
                     shell: true,
-                    env: { ...process.env, BC_SOURCE: 'vscode', BC_SOURCE_VERSION: extensionVersion, PRISMA_API_URL: prismaUrl, ...debugLogEnv },
+                    env: { ...process.env, BC_SOURCE: 'vscode', BC_SOURCE_VERSION: extensionVersion, PRISMA_API_URL: prismaUrl, ENABLE_SCA_PACKAGE_SCAN: 'true',...debugLogEnv },
                     ...(workingDir ? { cwd: workingDir } : {})
                 });
 
@@ -166,38 +134,3 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
     });
 };
 
-const parseCheckovResponse = (rawResponse: CheckovResponseRaw | SuccessResponseRaw, useBcIds: boolean | undefined): CheckovResponse => {
-
-    if (!(Array.isArray(rawResponse) || rawResponse.results)) {
-        if  (rawResponse.resource_count === 0) {
-            return {
-                results: {
-                    failedChecks: []
-                }
-            };
-        } else {
-            throw new Error('Unexpected checkov response');
-        }
-    }
-
-    let failedChecks: FailedCheckovCheckRaw[];
-    if (Array.isArray(rawResponse)) {
-        failedChecks = rawResponse.reduce((res, val) => res.concat(val.results.failed_checks), []);
-    }
-    else {
-        failedChecks = rawResponse.results.failed_checks;
-    }
-
-    return {
-        results: {
-            failedChecks: failedChecks.map(rawCheck => ({
-                checkId: (useBcIds && rawCheck.bc_check_id) || rawCheck.check_id,
-                checkName: rawCheck.check_name,
-                fileLineRange: rawCheck.file_line_range,
-                resource: rawCheck.resource,
-                guideline: rawCheck.guideline,
-                fixedDefinition: rawCheck.fixed_definition
-            }))
-        }
-    };
-};

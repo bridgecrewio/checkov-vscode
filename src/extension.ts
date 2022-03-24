@@ -2,8 +2,7 @@ import * as vscode from 'vscode';
 import { TextEncoder } from 'util';
 import debounce from 'lodash/debounce';
 import { Logger } from 'winston';
-import { CheckovInstallation, installOrUpdateCheckov } from './checkovInstaller';
-import { runCheckovScan } from './checkovRunner';
+import { CheckovInstallation, installOrUpdateCheckov, runCheckovScan } from './checkov';
 import { applyDiagnostics } from './diagnostics';
 import { fixCodeActionProvider, providedCodeActionKinds } from './suggestFix';
 import { getLogger, saveCheckovResult, isSupportedFileType, extensionVersion, runVersionCommand } from './utils';
@@ -147,7 +146,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
     // set code action provider
     context.subscriptions.push(
-        vscode.languages.registerCodeActionsProvider([{ pattern: ' **/*.{tf,yml,yaml,json}' },{ pattern: '**/Dockerfile' }],
+        vscode.languages.registerCodeActionsProvider([{ pattern: ' **/*.{tf,yml,yaml,json}' },{ pattern: '**/Dockerfile' }, { pattern: '**/*.{txt,json,sum,gradle,gradle.kts,properties,xml}' }, { pattern: '**/METADATA' }],
             fixCodeActionProvider(context.workspaceState), { providedCodeActionKinds: providedCodeActionKinds })
     );
 

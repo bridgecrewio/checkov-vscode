@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { Logger } from 'winston';
 import { setMissingConfigurationStatusBarItem } from './userInterface';
 import * as semver from 'semver';
-import { CheckovInstallation } from './checkovInstaller';
+import { CheckovInstallation } from './checkov';
 import { getTokenType } from './utils';
 import { asyncExec } from './utils';
 
