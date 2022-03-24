@@ -8,10 +8,10 @@ interface SuccessResponseRaw {
 
 const resultParserSCA = ({ useBcIds = false }: ParserOptions) => (rawCheck: FailedCheckovCheckRaw): FailedCheckovCheck => ({
     checkId: (useBcIds && rawCheck.bc_check_id) || rawCheck.check_id,
-    checkName: `${(useBcIds && rawCheck.bc_check_id) || rawCheck.check_id} ${rawCheck.severity} `,
+    checkName: `${(useBcIds && rawCheck.bc_check_id) || rawCheck.check_id} ${rawCheck.code_block ? rawCheck.code_block[0][1] : ''} ${rawCheck.severity} `,
     fileLineRange: rawCheck.file_line_range,
     resource: rawCheck.resource,
-    guideline: rawCheck.guideline || rawCheck.description,
+    guideline: rawCheck.guideline || rawCheck.short_description,
     fixedDefinition: rawCheck.fixed_definition
 });
 const resultParserDefault = ({ useBcIds = false }: ParserOptions) => (rawCheck: FailedCheckovCheckRaw): FailedCheckovCheck => ({
@@ -37,7 +37,7 @@ const getFailedChecks = (checkovResponse: CheckovResponseRaw, useBcIds: boolean 
     const responseByType: CheckovResponseRaw[] = Array.isArray(checkovResponse) ? checkovResponse : [checkovResponse];
 
     return responseByType.reduce((result, current) => {
-        const parser: ParserFunction = (resultParsersByType[current.results.check_type] || resultParsersByType.default)({ useBcIds });
+        const parser: ParserFunction = (resultParsersByType[current.check_type] || resultParsersByType.default)({ useBcIds });
         const parsedChecks: FailedCheckovCheck[] = current.results.failed_checks.map(parser);
         return [...result, ...parsedChecks];
     }, [] as FailedCheckovCheck[]);

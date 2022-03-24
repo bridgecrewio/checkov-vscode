@@ -23,11 +23,13 @@ export interface FailedCheckovCheckRaw {
     description?: string;
     fixed_definition?: string;
     severity?: string;
+    code_block?: string[];
+    short_description?: string;
 }
 
 export interface CheckovResponseRaw {
+    check_type: string;
     results: {
-        check_type: string;
         failed_checks: FailedCheckovCheckRaw[];
     };
 }

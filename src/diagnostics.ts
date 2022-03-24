@@ -24,8 +24,7 @@ export const applyDiagnostics = (document: vscode.TextDocument, diagnostics: vsc
             range: new vscode.Range(startPos, line.range.end),
             severity: vscode.DiagnosticSeverity.Error,
             source: 'Checkov ',
-            code,
-
+            code
         });
     }
 
