@@ -137,9 +137,11 @@ export const getGitRepoName = async (logger: winston.Logger, filename: string | 
                 firstLine = line;
             }
             if (line.startsWith('origin')) {
-            // remove the upstream name from the front and '(fetch)' or '(push)' from the back
+                // remove the upstream name from the front and ' (fetch)' or ' (push)' from the back
                 const repoUrl = line.split('\t')[1].split(' ')[0];
+                logger.info('repo url' + repoUrl);
                 const repoName = parseRepoName(repoUrl);
+                logger.info('repo name' + repoName);
                 if (repoName) {
                     return repoName;
                 }
@@ -148,7 +150,7 @@ export const getGitRepoName = async (logger: winston.Logger, filename: string | 
 
         // if we're here, then there is no 'origin', so just take the first line as a default (regardless of how many upsteams there happen to be)
         if (firstLine) {
-            const repoUrl = firstLine.split('\t')[1];
+            const repoUrl = firstLine.split('\t')[1].split(' ')[0];
             const repoName = parseRepoName(repoUrl);
             if (repoName) {
                 return repoName;
@@ -171,6 +173,9 @@ export const getDockerPathParams = (workspaceRoot: string | undefined, filePath:
 };
 
 const parseRepoName = (repoUrl: string): string | null => {
+    if (repoUrl.endsWith('/')) {
+        repoUrl = repoUrl.substring(0, repoUrl.length - 1);
+    }
     const lastSlash = repoUrl.lastIndexOf('/');
     if (lastSlash === -1) {
         return null;
