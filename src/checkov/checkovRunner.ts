@@ -39,7 +39,7 @@ const getDockerRunParams = (workspaceRoot: string | undefined, filePath: string,
     const configFileDockerParams = getDockerFileMountParams(configMountDir, configFilePath);
     const configFileCheckovParams = configFilePath ? ['--config-file', `"${configMountDir}/${path.basename(configFilePath)}"`] : [];
     
-    const dockerParams = ['run', '--rm', '--tty', ...prismaUrlParams, ...debugLogParams, '--env', 'BC_SOURCE=vscode', '--env', `BC_SOURCE_VERSION=${extensionVersion}`, '--env', 'ENABLE_SCA_PACKAGE_SCAN=true',
+    const dockerParams = ['run', '--rm', '--tty', ...prismaUrlParams, ...debugLogParams, '--env', 'BC_SOURCE=vscode', '--env', `BC_SOURCE_VERSION=${extensionVersion}`,
         '-v', `"${mountRoot}:${dockerMountDir}"`, ...caCertDockerParams, ...configFileDockerParams, '-w', dockerMountDir];
     
     return [...dockerParams, image, ...configFileCheckovParams, ...caCertCheckovParams, '-f', filePathToScan];
@@ -75,7 +75,7 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
             const ckv = spawn(checkovPath, checkovArguments,
                 {
                     shell: true,
-                    env: { ...process.env, BC_SOURCE: 'vscode', BC_SOURCE_VERSION: extensionVersion, PRISMA_API_URL: prismaUrl, ENABLE_SCA_PACKAGE_SCAN: 'true',...debugLogEnv },
+                    env: { ...process.env, BC_SOURCE: 'vscode', BC_SOURCE_VERSION: extensionVersion, PRISMA_API_URL: prismaUrl, ...debugLogEnv },
                     ...(workingDir ? { cwd: workingDir } : {})
                 });
 
