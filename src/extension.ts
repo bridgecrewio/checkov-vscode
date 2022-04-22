@@ -158,11 +158,11 @@ export function activate(context: vscode.ExtensionContext): void {
                 const hash = getFileHash(filename);
                 const cachedResults = fileCache.get(hash);
                 if (cachedResults) {
-                    logger.debug(`Found cached results for file ${filename} (hash: ${hash})`);
+                    logger.debug(`Found cached results for hash: ${hash} (cached scan filename ${cachedResults.filename})`);
                     handleScanResults(filename, vscode.window.activeTextEditor, context.workspaceState, cachedResults.results);
                     return;
                 } else {
-                    logger.debug(`useCache is true, but did not find cached results for hash ${hash}`);
+                    logger.debug(`useCache is true, but did not find cached results for hash: ${hash} (filename ${filename})`);
                 }
             }
             await runScan(vscode.window.activeTextEditor, token, certPath, useBcIds, debugLogs, checkovRunCancelTokenSource.token, checkovVersion, prismaUrl, fileUri);
