@@ -62,7 +62,7 @@ The Checkov extension will invoke the latest version of ```Checkov```.
 
 ### Troubleshooting logs
 
-To access checkov-vscode logs directory, open the VSCODE Command Palette `(Ctrl+Shift+P)`, run the command `Developer: Open Extensions Logs Folder`, and the log file should be inside the `Bridgecrew.checkov` folder.
+To access checkov-vscode logs directory, open the VSCODE Command Palette `(Ctrl+Shift+P)` or `(Command+Shift+P)`, and run the command `Open Checkov Log`. It is helpful if you delete the log file and then re-try whichever operation was failing in order to produce clean logs.
 
 ### Common Issues
 
