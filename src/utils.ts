@@ -1,4 +1,6 @@
 import * as vscode from 'vscode';
+import * as crypto from 'crypto';
+import * as fs from 'fs';
 import { exec, ExecOptions } from 'child_process';
 import winston from 'winston';
 import { FailedCheckovCheck } from './checkov';
@@ -22,6 +24,11 @@ export const extensionVersion = extensionData ? extensionData.packageJSON.versio
 export const isWindows = process.platform === 'win32';
 
 export type TokenType = 'bc-token' | 'prisma';
+
+export type FileScanCacheEntry = {
+    hash: string,
+    results: FailedCheckovCheck[]
+};
 
 type ExecOutput = [stdout: string, stderr: string];
 export const asyncExec = async (commandToExecute: string, options: ExecOptions = {}): Promise<ExecOutput> => {
@@ -207,4 +214,11 @@ export const getTokenType = (token: string): TokenType => token.includes('::') ?
 export const normalizePath = (filePath: string): string[] => {
     const absPath = path.resolve(filePath);
     return [path.basename(absPath), absPath];
+};
+
+export const getFileHash = (filename: string): string => {
+    const fileBuffer = fs.readFileSync(filename);
+    const hashSum = crypto.createHash('md5');
+    hashSum.update(fileBuffer);
+    return hashSum.digest('hex');
 };
