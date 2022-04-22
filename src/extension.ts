@@ -155,21 +155,14 @@ export function activate(context: vscode.ExtensionContext): void {
         if (!!token && vscode.window.activeTextEditor) {
             if (useCache) {
                 const filename = fileUri?.fsPath || vscode.window.activeTextEditor.document.fileName;
-                const cachedResults = fileCache.get(filename);
+                const hash = getFileHash(filename);
+                const cachedResults = fileCache.get(hash);
                 if (cachedResults) {
-                    logger.debug(`Found cached results for file ${filename}`);
-                    const hash = getFileHash(filename);
-                    logger.debug(`Hash of file: ${hash}`);
-                    logger.debug(`Hash of cached file: ${cachedResults.hash}`);
-                    if (hash === cachedResults.hash) {
-                        logger.debug('Hash matches; skipping scan');
-                        handleScanResults(filename, vscode.window.activeTextEditor, context.workspaceState, cachedResults.results);
-                        return;
-                    } else {
-                        logger.debug('Hash does not match; running a new scan');
-                    }
+                    logger.debug(`Found cached results for file ${filename} (hash: ${hash})`);
+                    handleScanResults(filename, vscode.window.activeTextEditor, context.workspaceState, cachedResults.results);
+                    return;
                 } else {
-                    logger.debug(`useCache is true, but did not find cached results for file ${filename}`);
+                    logger.debug(`useCache is true, but did not find cached results for hash ${hash}`);
                 }
             }
             await runScan(vscode.window.activeTextEditor, token, certPath, useBcIds, debugLogs, checkovRunCancelTokenSource.token, checkovVersion, prismaUrl, fileUri);
@@ -205,8 +198,10 @@ export function activate(context: vscode.ExtensionContext): void {
         saveCheckovResult(context.workspaceState, checkovFails);
         applyDiagnostics(editor.document, diagnostics, checkovFails);
         (checkovFails.length > 0 ? setErrorStatusBarItem : setPassedStatusBarItem)(checkovInstallation?.version);
-        fileCache.set(filename, {
-            hash: getFileHash(filename),
+        const hash = getFileHash(filename);
+        fileCache.set(hash, {
+            hash: hash,
+            filename: filename,
             results: checkovFails
         });
     };

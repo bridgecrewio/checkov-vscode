@@ -27,6 +27,7 @@ export type TokenType = 'bc-token' | 'prisma';
 
 export type FileScanCacheEntry = {
     hash: string,
+    filename: string,
     results: FailedCheckovCheck[]
 };
 
