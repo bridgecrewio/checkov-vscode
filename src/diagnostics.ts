@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { Logger } from 'winston';
 import { FailedCheckovCheck } from './checkov';
 
 export interface DiagnosticReferenceCode {
@@ -18,9 +19,8 @@ export const applyDiagnostics = (document: vscode.TextDocument, diagnostics: vsc
                     target: vscode.Uri.parse(failure.guideline),
                     value: failure.checkId
                 } : `${failure.checkId}${failure.guideline ? `: ${failure.guideline}` : ''}`;
-
         foundDiagnostics.push({
-            message: failure.checkName,
+            message: `${failure.severity ? (failure.severity + ': ') : ''}${failure.checkName}`,
             range: new vscode.Range(startPos, line.range.end),
             severity: vscode.DiagnosticSeverity.Error,
             source: 'Checkov ',

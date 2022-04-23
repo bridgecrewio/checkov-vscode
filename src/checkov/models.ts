@@ -5,6 +5,7 @@ export interface FailedCheckovCheck {
     resource: string;
     guideline?: string;
     fixedDefinition?: string;
+    severity?: string;
 }
 
 export interface CheckovResponse {

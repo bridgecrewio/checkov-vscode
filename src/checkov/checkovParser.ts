@@ -12,7 +12,8 @@ const resultParserSCA = ({ useBcIds = false }: ParserOptions) => (rawCheck: Fail
     fileLineRange: rawCheck.file_line_range,
     resource: rawCheck.resource,
     guideline: rawCheck.guideline || rawCheck.short_description,
-    fixedDefinition: rawCheck.fixed_definition
+    fixedDefinition: rawCheck.fixed_definition,
+    severity: rawCheck.severity
 });
 const resultParserDefault = ({ useBcIds = false }: ParserOptions) => (rawCheck: FailedCheckovCheckRaw): FailedCheckovCheck => ({
     checkId: (useBcIds && rawCheck.bc_check_id) || rawCheck.check_id,
@@ -20,7 +21,8 @@ const resultParserDefault = ({ useBcIds = false }: ParserOptions) => (rawCheck: 
     fileLineRange: rawCheck.file_line_range,
     resource: rawCheck.resource,
     guideline: rawCheck.guideline || rawCheck.description,
-    fixedDefinition: rawCheck.fixed_definition
+    fixedDefinition: rawCheck.fixed_definition,
+    severity: rawCheck.severity
 });
 
 type ParserFunction = (rawCheck: FailedCheckovCheckRaw) => FailedCheckovCheck;
