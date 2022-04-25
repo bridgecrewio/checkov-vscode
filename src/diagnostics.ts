@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import { Logger } from 'winston';
 import { FailedCheckovCheck } from './checkov';
 
 export interface DiagnosticReferenceCode {
