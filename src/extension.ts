@@ -5,7 +5,7 @@ import { Logger } from 'winston';
 import { CheckovInstallation, FailedCheckovCheck, installOrUpdateCheckov, runCheckovScan } from './checkov';
 import { applyDiagnostics } from './diagnostics';
 import { fixCodeActionProvider, providedCodeActionKinds } from './suggestFix';
-import { getLogger, saveCheckovResult, isSupportedFileType, extensionVersion, runVersionCommand, FileScanCacheEntry, getFileHash } from './utils';
+import { getLogger, saveCheckovResult, isSupportedFileType, extensionVersion, runVersionCommand, getFileHash, saveCachedResults, getCachedResults, clearCache, checkovVersionKey } from './utils';
 import { initializeStatusBarItem, setErrorStatusBarItem, setPassedStatusBarItem, setReadyStatusBarItem, setSyncingStatusBarItem, showAboutCheckovMessage, showContactUsDetails } from './userInterface';
 import { assureTokenSet, getCheckovVersion, shouldDisableErrorMessage, getPathToCert, getUseBcIds, getPrismaUrl, getUseDebugLogs } from './configuration';
 import { GET_INSTALLATION_DETAILS_COMMAND, INSTALL_OR_UPDATE_CHECKOV_COMMAND, OPEN_CHECKOV_LOG, OPEN_CONFIGURATION_COMMAND, OPEN_EXTERNAL_COMMAND, REMOVE_DIAGNOSTICS_COMMAND, RUN_FILE_SCAN_COMMAND } from './commands';
@@ -26,13 +26,13 @@ export function activate(context: vscode.ExtensionContext): void {
     let checkovInstallation : CheckovInstallation | null = null;
     const checkovInstallationDir = vscode.Uri.joinPath(context.globalStorageUri, 'checkov-installation').fsPath;
 
-    const fileCache: Map<string, FileScanCacheEntry> = new Map();
-
     const resetCancelTokenSource = () => {
         checkovRunCancelTokenSource.cancel();
         checkovRunCancelTokenSource.dispose();
         checkovRunCancelTokenSource = new vscode.CancellationTokenSource();
     };
+
+    // clearCache(context, logger);
 
     // Set diagnostics collection
     const diagnostics = vscode.languages.createDiagnosticCollection('checkov-alerts');
@@ -48,6 +48,16 @@ export function activate(context: vscode.ExtensionContext): void {
                 checkovInstallation = await installOrUpdateCheckov(logger, checkovInstallationDir, checkovVersion);
                 logger.info('Checkov installation: ', checkovInstallation);
                 checkovInstallation.version = await runVersionCommand(logger, checkovInstallation.checkovPath, checkovVersion);
+
+                const previousCheckovVersion = context.globalState.get(checkovVersionKey);
+                if (previousCheckovVersion !== checkovInstallation.version) {
+                    logger.info('Previously installed checkov version does not match the newly installed one. Clearing results cache.');
+                    context.globalState.update(checkovVersionKey, checkovInstallation.version);
+                    clearCache(context, logger);
+                } else {
+                    logger.debug('Previously installed checkov version matches the newly installed one');
+                }
+
                 setReadyStatusBarItem(checkovInstallation.version);
                 extensionReady = true;
                 if (vscode.window.activeTextEditor && isSupportedFileType(vscode.window.activeTextEditor.document.fileName))
@@ -156,10 +166,10 @@ export function activate(context: vscode.ExtensionContext): void {
             if (useCache) {
                 const filename = fileUri?.fsPath || vscode.window.activeTextEditor.document.fileName;
                 const hash = getFileHash(filename);
-                const cachedResults = fileCache.get(hash);
+                const cachedResults = getCachedResults(context, hash, logger);
                 if (cachedResults) {
                     logger.debug(`Found cached results for hash: ${hash} (cached scan filename ${cachedResults.filename})`);
-                    handleScanResults(filename, vscode.window.activeTextEditor, context.workspaceState, cachedResults.results);
+                    handleScanResults(filename, vscode.window.activeTextEditor, context.workspaceState, cachedResults.results, logger);
                     return;
                 } else {
                     logger.debug(`useCache is true, but did not find cached results for hash: ${hash} (filename ${filename})`);
@@ -182,7 +192,7 @@ export function activate(context: vscode.ExtensionContext): void {
             }
 
             const checkovResponse = await runCheckovScan(logger, checkovInstallation, extensionVersion, filePath, token, certPath, useBcIds, debugLogs, cancelToken, configPath, checkovVersion, prismaUrl);
-            handleScanResults(filePath, editor, context.workspaceState, checkovResponse.results.failedChecks);
+            handleScanResults(filePath, editor, context.workspaceState, checkovResponse.results.failedChecks, logger);
         } catch (error) {
             if (cancelToken.isCancellationRequested) {
                 return;
@@ -194,15 +204,10 @@ export function activate(context: vscode.ExtensionContext): void {
         }
     }, 300, {});
 
-    const handleScanResults = (filename: string, editor: vscode.TextEditor, state: vscode.Memento, checkovFails: FailedCheckovCheck[]) => {
+    const handleScanResults = (filename: string, editor: vscode.TextEditor, state: vscode.Memento, checkovFails: FailedCheckovCheck[], logger: Logger) => {
         saveCheckovResult(context.workspaceState, checkovFails);
         applyDiagnostics(editor.document, diagnostics, checkovFails);
         (checkovFails.length > 0 ? setErrorStatusBarItem : setPassedStatusBarItem)(checkovInstallation?.version);
-        const hash = getFileHash(filename);
-        fileCache.set(hash, {
-            hash: hash,
-            filename: filename,
-            results: checkovFails
-        });
+        saveCachedResults(context, getFileHash(filename), filename, checkovFails, logger);
     };
 }
