@@ -2,12 +2,13 @@ import * as vscode from 'vscode';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import { exec, ExecOptions } from 'child_process';
-import winston from 'winston';
+import winston, { Logger } from 'winston';
 import { FailedCheckovCheck } from './checkov';
 import { DiagnosticReferenceCode } from './diagnostics';
 import { CHECKOV_MAP } from './extension';
 import { showUnsupportedFileMessage } from './userInterface';
 import * as path from 'path';
+import { ResultsCacheObject } from './checkov/models';
 
 const extensionData = vscode.extensions.getExtension('bridgecrew.checkov');
 export const extensionVersion = extensionData ? extensionData.packageJSON.version : 'unknown';
@@ -23,10 +24,14 @@ export const extensionVersion = extensionData ? extensionData.packageJSON.versio
 
 export const isWindows = process.platform === 'win32';
 
+export const cacheDateKey = 'CKV_CACHE_DATE';
+export const cacheResultsKey = 'CKV_CACHE_RESULTS';
+export const checkovVersionKey = 'CKV_VERSION';
+
 export type TokenType = 'bc-token' | 'prisma';
 
 export type FileScanCacheEntry = {
-    hash: string,
+    fileHash: string,
     filename: string,
     results: FailedCheckovCheck[]
 };
@@ -222,4 +227,47 @@ export const getFileHash = (filename: string): string => {
     const hashSum = crypto.createHash('md5');
     hashSum.update(fileBuffer);
     return hashSum.digest('hex');
+};
+
+export const getCachedResults = (context: vscode.ExtensionContext, fileHash: string, logger: Logger): FileScanCacheEntry | undefined => {
+    logger.debug(`Getting cached results for hash ${fileHash}`);
+    validateCacheExpiration(context, logger);
+    const cache: ResultsCacheObject | undefined = context.workspaceState.get(cacheResultsKey);
+    return cache ? cache[fileHash] : undefined;
+};
+
+export const saveCachedResults = (context: vscode.ExtensionContext, fileHash: string, filename: string, results: FailedCheckovCheck[], logger: Logger): void => {
+    logger.debug(`Saving results for file ${filename} (hash: ${fileHash})`);
+    validateCacheExpiration(context, logger);
+
+    const cache: ResultsCacheObject | undefined = context.workspaceState.get(cacheResultsKey);
+    if (cache) {
+        cache[fileHash] = { fileHash, filename, results };
+    }
+};
+
+export const clearCache = (context: vscode.ExtensionContext, logger: Logger): void => {
+    logger.debug('Clearing results cache');
+    context.workspaceState.update(cacheResultsKey, undefined);  // undefined removes the key
+    context.workspaceState.update(cacheDateKey, undefined);
+};
+
+const getDate = (): string => {
+    const today = new Date();
+    return `${today.getFullYear()}/${today.getMonth()}/${today.getDate()}`;
+};
+
+const validateCacheExpiration = (context: vscode.ExtensionContext, logger: Logger): void => {
+    const today = getDate();
+    logger.debug(`Today: ${today}`);
+    const cacheDate = context.workspaceState.get(cacheDateKey);
+    logger.debug(`Cache date: ${cacheDate}`);
+
+    if (cacheDate !== today) {
+        logger.info('Cache date was not set or cache is stale. Starting new cache.');
+        context.workspaceState.update(cacheResultsKey, {});
+        context.workspaceState.update(cacheDateKey, today);
+    } else {
+        logger.info(`Cache date (${cacheDate}) is not stale`);
+    }
 };
