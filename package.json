@@ -52,6 +52,10 @@
       {
         "command": "checkov.open-log",
         "title": "Open Checkov Log"
+      },
+      {
+        "command": "checkov.clear-results-cache",
+        "title": "Clear Checkov results cache"
       }
     ],
     "configuration": {

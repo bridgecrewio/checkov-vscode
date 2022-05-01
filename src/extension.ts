@@ -8,8 +8,9 @@ import { fixCodeActionProvider, providedCodeActionKinds } from './suggestFix';
 import { getLogger, saveCheckovResult, isSupportedFileType, extensionVersion, runVersionCommand, getFileHash, saveCachedResults, getCachedResults, clearCache, checkovVersionKey } from './utils';
 import { initializeStatusBarItem, setErrorStatusBarItem, setPassedStatusBarItem, setReadyStatusBarItem, setSyncingStatusBarItem, showAboutCheckovMessage, showContactUsDetails } from './userInterface';
 import { assureTokenSet, getCheckovVersion, shouldDisableErrorMessage, getPathToCert, getUseBcIds, getPrismaUrl, getUseDebugLogs } from './configuration';
-import { GET_INSTALLATION_DETAILS_COMMAND, INSTALL_OR_UPDATE_CHECKOV_COMMAND, OPEN_CHECKOV_LOG, OPEN_CONFIGURATION_COMMAND, OPEN_EXTERNAL_COMMAND, REMOVE_DIAGNOSTICS_COMMAND, RUN_FILE_SCAN_COMMAND } from './commands';
+import { CLEAR_RESULTS_CACHE, GET_INSTALLATION_DETAILS_COMMAND, INSTALL_OR_UPDATE_CHECKOV_COMMAND, OPEN_CHECKOV_LOG, OPEN_CONFIGURATION_COMMAND, OPEN_EXTERNAL_COMMAND, REMOVE_DIAGNOSTICS_COMMAND, RUN_FILE_SCAN_COMMAND } from './commands';
 import { getConfigFilePath } from './parseCheckovConfig';
+import { clear } from 'console';
 
 export const CHECKOV_MAP = 'checkovMap';
 const logFileName = 'checkov.log';
@@ -31,8 +32,6 @@ export function activate(context: vscode.ExtensionContext): void {
         checkovRunCancelTokenSource.dispose();
         checkovRunCancelTokenSource = new vscode.CancellationTokenSource();
     };
-
-    // clearCache(context, logger);
 
     // Set diagnostics collection
     const diagnostics = vscode.languages.createDiagnosticCollection('checkov-alerts');
@@ -96,6 +95,9 @@ export function activate(context: vscode.ExtensionContext): void {
         }),
         vscode.commands.registerCommand(OPEN_CHECKOV_LOG, async () => {
             vscode.window.showTextDocument(vscode.Uri.joinPath(context.logUri, logFileName));
+        }),
+        vscode.commands.registerCommand(CLEAR_RESULTS_CACHE, async () => {
+            clearCache(context, logger);
         })
     );
 
