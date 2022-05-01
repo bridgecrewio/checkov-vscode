@@ -10,7 +10,6 @@ import { initializeStatusBarItem, setErrorStatusBarItem, setPassedStatusBarItem,
 import { assureTokenSet, getCheckovVersion, shouldDisableErrorMessage, getPathToCert, getUseBcIds, getPrismaUrl, getUseDebugLogs } from './configuration';
 import { CLEAR_RESULTS_CACHE, GET_INSTALLATION_DETAILS_COMMAND, INSTALL_OR_UPDATE_CHECKOV_COMMAND, OPEN_CHECKOV_LOG, OPEN_CONFIGURATION_COMMAND, OPEN_EXTERNAL_COMMAND, REMOVE_DIAGNOSTICS_COMMAND, RUN_FILE_SCAN_COMMAND } from './commands';
 import { getConfigFilePath } from './parseCheckovConfig';
-import { clear } from 'console';
 
 export const CHECKOV_MAP = 'checkovMap';
 const logFileName = 'checkov.log';

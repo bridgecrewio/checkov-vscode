@@ -252,9 +252,10 @@ export const clearCache = (context: vscode.ExtensionContext, logger: Logger): vo
     context.workspaceState.update(cacheDateKey, undefined);
 };
 
-const getDate = (): string => {
+const getDate = (): number => {
     const today = new Date();
-    return `${today.getFullYear()}/${today.getMonth()}/${today.getDate()}`;
+    today.setHours(0, 0, 0, 0);
+    return today.getTime();
 };
 
 const validateCacheExpiration = (context: vscode.ExtensionContext, logger: Logger): void => {
