@@ -28,6 +28,8 @@ export const cacheDateKey = 'CKV_CACHE_DATE';
 export const cacheResultsKey = 'CKV_CACHE_RESULTS';
 export const checkovVersionKey = 'CKV_VERSION';
 
+const maxCacheSizePerFile = 10;
+
 export type TokenType = 'bc-token' | 'prisma';
 
 export type FileScanCacheEntry = {
@@ -229,11 +231,11 @@ export const getFileHash = (filename: string): string => {
     return hashSum.digest('hex');
 };
 
-export const getCachedResults = (context: vscode.ExtensionContext, fileHash: string, logger: Logger): FileScanCacheEntry | undefined => {
+export const getCachedResults = (context: vscode.ExtensionContext, fileHash: string, filename: string, logger: Logger): FileScanCacheEntry | undefined => {
     logger.debug(`Getting cached results for hash ${fileHash}`);
     validateCacheExpiration(context, logger);
     const cache: ResultsCacheObject | undefined = context.workspaceState.get(cacheResultsKey);
-    return cache ? cache[fileHash] : undefined;
+    return cache ? cache[filename]?.find(fileHash, filename) : undefined;
 };
 
 export const saveCachedResults = (context: vscode.ExtensionContext, fileHash: string, filename: string, results: FailedCheckovCheck[], logger: Logger): void => {
@@ -242,7 +244,20 @@ export const saveCachedResults = (context: vscode.ExtensionContext, fileHash: st
 
     const cache: ResultsCacheObject | undefined = context.workspaceState.get(cacheResultsKey);
     if (cache) {
-        cache[fileHash] = { fileHash, filename, results };
+        let fileCache = cache[filename];
+        if (!fileCache) {
+            logger.debug(`First cache entry for file ${filename}`);
+            fileCache = new BoundedFileCache(maxCacheSizePerFile); 
+            cache[filename] = fileCache;
+        } 
+        
+        const entry: FileScanCacheEntry = { fileHash, filename, results };
+        if (!fileCache.contains(entry)) {
+            fileCache.push(entry);
+            logger.debug(`File ${filename} now has ${fileCache.elements.length} saved results`);
+        } else {
+            logger.debug(`Cache for file ${filename} already has an entry for hash ${fileHash}`);
+        }
     }
 };
 
@@ -265,10 +280,42 @@ const validateCacheExpiration = (context: vscode.ExtensionContext, logger: Logge
     logger.debug(`Cache date: ${cacheDate}`);
 
     if (cacheDate !== today) {
-        logger.info('Cache date was not set or cache is stale. Starting new cache.');
+        logger.debug('Cache date was not set or cache is stale. Starting new cache.');
         context.workspaceState.update(cacheResultsKey, {});
         context.workspaceState.update(cacheDateKey, today);
     } else {
-        logger.info(`Cache date (${cacheDate}) is not stale`);
+        logger.debug(`Cache date (${cacheDate}) is not stale`);
     }
 };
+
+export class BoundedFileCache {
+    elements: FileScanCacheEntry[];
+    maxLength: number;
+    oldest: number;
+
+    constructor(maxLength: number) {
+        this.elements = [];
+        this.maxLength = maxLength;
+        this.oldest = 0;
+    }
+
+    push(element: FileScanCacheEntry): void {
+        if (this.elements.length < this.maxLength) {
+            this.elements.push(element);
+        } else {
+            this.elements[this.oldest] = element;
+            this.oldest++;
+            if (this.oldest === this.elements.length) {
+                this.oldest = 0;
+            }
+        }
+    }
+
+    contains(element: FileScanCacheEntry): boolean {
+        return this.find(element.fileHash, element.filename) !== undefined;
+    }
+
+    find(fileHash: string, filename: string): FileScanCacheEntry | undefined {
+        return this.elements.find(e => e.fileHash === fileHash && e.filename === filename);
+    }
+}

@@ -165,15 +165,16 @@ export function activate(context: vscode.ExtensionContext): void {
             return;
         if (!!token && vscode.window.activeTextEditor) {
             if (useCache) {
-                const filename = fileUri?.fsPath || vscode.window.activeTextEditor.document.fileName;
-                const hash = getFileHash(filename);
-                const cachedResults = getCachedResults(context, hash, logger);
+                const fileToScan = fileUri?.fsPath || vscode.window.activeTextEditor.document.fileName;
+                const hash = getFileHash(fileToScan);
+                // fileUri will be non-null if we are scanning a temp (unsaved) file, so use the active editor filename for caching in this case
+                const cachedResults = getCachedResults(context, hash, vscode.window.activeTextEditor.document.fileName, logger);
                 if (cachedResults) {
-                    logger.debug(`Found cached results for hash: ${hash} (cached scan filename ${cachedResults.filename})`);
-                    handleScanResults(filename, vscode.window.activeTextEditor, context.workspaceState, cachedResults.results, logger);
+                    logger.debug(`Found cached results for file: ${vscode.window.activeTextEditor.document.fileName}, hash: ${hash}`);
+                    handleScanResults(fileToScan, vscode.window.activeTextEditor, context.workspaceState, cachedResults.results, logger);
                     return;
                 } else {
-                    logger.debug(`useCache is true, but did not find cached results for hash: ${hash} (filename ${filename})`);
+                    logger.debug(`useCache is true, but did not find cached results for file: ${vscode.window.activeTextEditor.document.fileName}, hash: ${hash}`);
                 }
             }
             await runScan(vscode.window.activeTextEditor, token, certPath, useBcIds, debugLogs, checkovRunCancelTokenSource.token, checkovVersion, prismaUrl, fileUri);
@@ -209,6 +210,6 @@ export function activate(context: vscode.ExtensionContext): void {
         saveCheckovResult(context.workspaceState, checkovFails);
         applyDiagnostics(editor.document, diagnostics, checkovFails);
         (checkovFails.length > 0 ? setErrorStatusBarItem : setPassedStatusBarItem)(checkovInstallation?.version);
-        saveCachedResults(context, getFileHash(filename), filename, checkovFails, logger);
+        saveCachedResults(context, getFileHash(filename), editor.document.fileName, checkovFails, logger);
     };
 }
