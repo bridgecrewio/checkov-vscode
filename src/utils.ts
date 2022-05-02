@@ -8,7 +8,7 @@ import { DiagnosticReferenceCode } from './diagnostics';
 import { CHECKOV_MAP } from './extension';
 import { showUnsupportedFileMessage } from './userInterface';
 import * as path from 'path';
-import { ResultsCacheObject } from './checkov/models';
+import { FileCache, ResultsCache } from './checkov/models';
 
 const extensionData = vscode.extensions.getExtension('bridgecrew.checkov');
 export const extensionVersion = extensionData ? extensionData.packageJSON.version : 'unknown';
@@ -234,26 +234,26 @@ export const getFileHash = (filename: string): string => {
 export const getCachedResults = (context: vscode.ExtensionContext, fileHash: string, filename: string, logger: Logger): FileScanCacheEntry | undefined => {
     logger.debug(`Getting cached results for hash ${fileHash}`);
     validateCacheExpiration(context, logger);
-    const cache: ResultsCacheObject | undefined = context.workspaceState.get(cacheResultsKey);
-    return cache ? cache[filename]?.find(fileHash, filename) : undefined;
+    const cache: ResultsCache | undefined = context.workspaceState.get(cacheResultsKey);
+    return cache && cache[filename] ? findSavedScanForFile(fileHash, filename, cache[filename]) : undefined;
 };
 
 export const saveCachedResults = (context: vscode.ExtensionContext, fileHash: string, filename: string, results: FailedCheckovCheck[], logger: Logger): void => {
     logger.debug(`Saving results for file ${filename} (hash: ${fileHash})`);
     validateCacheExpiration(context, logger);
 
-    const cache: ResultsCacheObject | undefined = context.workspaceState.get(cacheResultsKey);
+    const cache: ResultsCache | undefined = context.workspaceState.get(cacheResultsKey);
     if (cache) {
         let fileCache = cache[filename];
         if (!fileCache) {
             logger.debug(`First cache entry for file ${filename}`);
-            fileCache = new BoundedFileCache(maxCacheSizePerFile); 
+            fileCache = { oldest: 0, elements: [] }; 
             cache[filename] = fileCache;
         } 
         
         const entry: FileScanCacheEntry = { fileHash, filename, results };
-        if (!fileCache.contains(entry)) {
-            fileCache.push(entry);
+        if (!fileCacheContainsEntry(entry, fileCache)) {
+            addSavedScanForFile(entry, fileCache);
             logger.debug(`File ${filename} now has ${fileCache.elements.length} saved results`);
         } else {
             logger.debug(`Cache for file ${filename} already has an entry for hash ${fileHash}`);
@@ -288,34 +288,22 @@ const validateCacheExpiration = (context: vscode.ExtensionContext, logger: Logge
     }
 };
 
-export class BoundedFileCache {
-    elements: FileScanCacheEntry[];
-    maxLength: number;
-    oldest: number;
-
-    constructor(maxLength: number) {
-        this.elements = [];
-        this.maxLength = maxLength;
-        this.oldest = 0;
-    }
-
-    push(element: FileScanCacheEntry): void {
-        if (this.elements.length < this.maxLength) {
-            this.elements.push(element);
-        } else {
-            this.elements[this.oldest] = element;
-            this.oldest++;
-            if (this.oldest === this.elements.length) {
-                this.oldest = 0;
-            }
+const addSavedScanForFile = (element: FileScanCacheEntry, fileCache: FileCache): void => {
+    if (fileCache.elements.length < maxCacheSizePerFile) {
+        fileCache.elements.push(element);
+    } else {
+        fileCache.elements[fileCache.oldest] = element;
+        fileCache.oldest++;
+        if (fileCache.oldest === fileCache.elements.length) {
+            fileCache.oldest = 0;
         }
     }
+};
 
-    contains(element: FileScanCacheEntry): boolean {
-        return this.find(element.fileHash, element.filename) !== undefined;
-    }
+const findSavedScanForFile = (fileHash: string, filename: string, fileCache: FileCache): FileScanCacheEntry | undefined => {
+    return fileCache.elements.find(e => e.fileHash === fileHash && e.filename === filename);
+};
 
-    find(fileHash: string, filename: string): FileScanCacheEntry | undefined {
-        return this.elements.find(e => e.fileHash === fileHash && e.filename === filename);
-    }
-}
+const fileCacheContainsEntry = (element: FileScanCacheEntry, fileCache: FileCache): boolean => {
+    return findSavedScanForFile(element.fileHash, element.filename, fileCache) !== undefined;
+};

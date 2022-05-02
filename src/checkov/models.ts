@@ -1,4 +1,4 @@
-import { BoundedFileCache } from '../utils';
+import { FileScanCacheEntry } from '../utils';
 
 export interface FailedCheckovCheck {
     checkId: string;
@@ -37,6 +37,11 @@ export interface CheckovResponseRaw {
     };
 }
 
-export interface ResultsCacheObject {
-    [key: string]: BoundedFileCache;
+export interface FileCache {
+    oldest: number;
+    elements: FileScanCacheEntry[];
+}
+
+export interface ResultsCache {
+    [key: string]: FileCache;
 }
