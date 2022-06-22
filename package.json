@@ -103,7 +103,7 @@
         },
         "checkov.externalChecksDir": {
           "title": "External Checks Directory",
-          "markdownDescription": "Path to external check to be added",
+          "markdownDescription": "Path to external checks to be added",
           "type": "string"
         }
       }
