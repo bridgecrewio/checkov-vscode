@@ -100,6 +100,11 @@
           "title": "Use debug logs",
           "markdownDescription": "Whether to print debug logs from Checkov for troubleshooting",
           "type": "boolean"
+        },
+        "checkov.externalChecksDir": {
+          "title": "External Checks Directory",
+          "markdownDescription": "Path to external check to be added",
+          "type": "string"
         }
       }
     }

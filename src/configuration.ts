@@ -94,3 +94,9 @@ export const getPrismaUrl = (): string | undefined => {
     const prismaUrl = configuration.get<string>('prismaURL');
     return prismaUrl;
 };
+
+export const getExternalChecksDir = (): string | undefined => {
+    const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('checkov');
+    const externalChecksDir = configuration.get<string>('externalChecksDir');
+    return externalChecksDir;
+};
