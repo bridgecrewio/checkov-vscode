@@ -24,6 +24,13 @@ const getDockerFileMountParams = (mountDir: string, filePath: string | undefined
     return ['-v', `"${absPath}:${mountDir}/${baseName}"`];
 };
 
+const getPathParamsForDockerRun = (mountDir: string, filePath: string | undefined, flag: string): string[][] => {
+    const dockerParams = getDockerFileMountParams(mountDir, filePath);
+    const checkovParams = filePath ? [flag, `"${mountDir}/${path.basename(filePath)}"`] : [];
+
+    return [dockerParams, checkovParams];
+};
+
 const getDockerRunParams = (workspaceRoot: string | undefined, filePath: string, extensionVersion: string, configFilePath: string | undefined, checkovVersion: string | undefined, prismaUrl: string | undefined, extChecksDir: string |undefined, certPath: string | undefined, debugLogs: boolean | undefined) => {
     const image = `bridgecrew/checkov:${checkovVersion}`;
     const pathParams = getDockerPathParams(workspaceRoot, filePath);
@@ -34,14 +41,9 @@ const getDockerRunParams = (workspaceRoot: string | undefined, filePath: string,
     const prismaUrlParams = prismaUrl ? ['--env', `PRISMA_API_URL=${prismaUrl}`] : [];
     const debugLogParams = debugLogs ? ['--env', 'LOG_LEVEL=DEBUG'] : [];
 
-    const caCertDockerParams = getDockerFileMountParams(caMountDir, certPath);
-    const caCertCheckovParams = certPath ? ['--ca-certificate', `"${caMountDir}/${path.basename(certPath)}"`] : [];
-
-    const configFileDockerParams = getDockerFileMountParams(configMountDir, configFilePath);
-    const configFileCheckovParams = configFilePath ? ['--config-file', `"${configMountDir}/${path.basename(configFilePath)}"`] : [];
-
-    const extChecksDockerParams = getDockerFileMountParams(extChecksMountDir, extChecksDir);
-    const extChecksCheckovParams = extChecksDir ? ['--external-checks-dir', `"${extChecksMountDir}/${path.basename(extChecksDir)}"`] : [];
+    const [caCertDockerParams, caCertCheckovParams] = getPathParamsForDockerRun(caMountDir, certPath, '--ca-certificate');
+    const [configFileDockerParams, configFileCheckovParams] = getPathParamsForDockerRun(configMountDir, configFilePath, '--config-file');
+    const [extChecksDockerParams, extChecksCheckovParams] = getPathParamsForDockerRun(extChecksMountDir, extChecksDir, '--external-checks-dir');
     
     const dockerParams = ['run', '--rm', '--tty', ...prismaUrlParams, ...debugLogParams, '--env', 'BC_SOURCE=vscode', '--env', `BC_SOURCE_VERSION=${extensionVersion}`,
         '-v', `"${mountRoot}:${dockerMountDir}"`, ...caCertDockerParams, ...configFileDockerParams, ...extChecksDockerParams, '-w', dockerMountDir];
