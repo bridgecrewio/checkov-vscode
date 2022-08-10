@@ -7,12 +7,11 @@ import { convertToUnixPath, getGitRepoName, getDockerPathParams, runVersionComma
 import { CheckovResponse, CheckovResponseRaw } from './models';
 import { parseCheckovResponse } from './checkovParser';
 
-
-
 const dockerMountDir = '/checkovScan';
 const configMountDir = '/checkovConfig';
 const caMountDir = '/checkovCert';
 const externalChecksMountDir = '/checkovExternalChecks';
+const skipChecks: string[] = ['BC_LIC*'];
 
 const getDockerFileMountParams = (mountDir: string, filePath: string | undefined): string[] => {
     if (!filePath) {
@@ -66,12 +65,13 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
         const filePathParams = checkovInstallationMethod === 'docker' ? [] : ['-f', `"${fileName}"`];
         const certificateParams: string[] = certPath && checkovInstallationMethod !== 'docker' ? ['-ca', `"${certPath}"`] : [];
         const bcIdParam: string[] = useBcIds ? ['--output-bc-ids'] : [];
+        const skipCheckParam: string[] = skipChecks.length ? ['--skip-check', skipChecks.join(',')] : [];
         const externalChecksParams: string[] = externalChecksDir && checkovInstallationMethod !== 'docker' ? ['--external-checks-dir', externalChecksDir] : [];
         const workingDir = vscode.workspace.rootPath;
         getGitRepoName(logger, vscode.window.activeTextEditor?.document.fileName).then((repoName) => {
             const repoIdParams = repoName ? ['--repo-id', repoName] : [];
             const checkovArguments: string[] = [...dockerRunParams, ...certificateParams, ...bcIdParam, '-s', '--bc-api-key', token, 
-                ...repoIdParams, ...filePathParams, '-o', 'json', ...pipRunParams, ...externalChecksParams];
+                ...repoIdParams, ...filePathParams, ...skipCheckParam, '-o', 'json', ...pipRunParams, ...externalChecksParams];
             logger.info('Running checkov:');
             logger.info(`${checkovPath} ${checkovArguments.map(argument => argument === token ? '****' : argument).join(' ')}`);
         
