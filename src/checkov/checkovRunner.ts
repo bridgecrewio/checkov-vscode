@@ -65,7 +65,7 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
         const filePathParams = checkovInstallationMethod === 'docker' ? [] : ['-f', `"${fileName}"`];
         const certificateParams: string[] = certPath && checkovInstallationMethod !== 'docker' ? ['-ca', `"${certPath}"`] : [];
         const bcIdParam: string[] = useBcIds ? ['--output-bc-ids'] : [];
-        const skipCheckParam: string[] = skipChecks.length > 0 ? ['--skip-check', skipChecks.join(',')] : [];
+        const skipCheckParam: string[] = skipChecks.length ? ['--skip-check', skipChecks.join(',')] : [];
         const externalChecksParams: string[] = externalChecksDir && checkovInstallationMethod !== 'docker' ? ['--external-checks-dir', externalChecksDir] : [];
         const workingDir = vscode.workspace.rootPath;
         getGitRepoName(logger, vscode.window.activeTextEditor?.document.fileName).then((repoName) => {
