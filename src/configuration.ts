@@ -3,7 +3,7 @@ import { Logger } from 'winston';
 import { setMissingConfigurationStatusBarItem } from './userInterface';
 import * as semver from 'semver';
 import { CheckovInstallation } from './checkov';
-import { getTokenType } from './utils';
+import { getPlatformCheckovVersion, getTokenType } from './utils';
 import { asyncExec } from './utils';
 
 const minCheckovVersion = '2.0.0';
@@ -46,14 +46,27 @@ export const getUseDebugLogs = (): boolean | undefined => {
     return useDebugLogs;
 };
 
-export const getCheckovVersion = (): string => {
+export const getCheckovVersion = async (logger: Logger): Promise<string> => {
 
     const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('checkov');
     const checkovVersion = configuration.get<string>('checkovVersion', 'latest').trim().toLowerCase();
 
     if (checkovVersion === '' || checkovVersion === 'latest') {
         return 'latest';
+    } else if (checkovVersion === 'platform') {
+        logger.debug('Checkov version is "platform" - getting version from platform API');
+
+        const token = configuration.get<string>('token');
+        const prismaApiUrl = configuration.get<string>('prismaURL');
+        if (!token) {
+            throw Error('Tried to get platform checkov version, but the API key is not set yet');
+        }
+
+        const version = await getPlatformCheckovVersion(token, prismaApiUrl, logger);
+        logger.debug(`Response from version API: ${version}`);
+        return version;
     } else {
+        logger.debug(`Found version other than "latest" or "platform" - will attempt to use this: ${checkovVersion}`);
         if (!semver.valid(checkovVersion)) {
             throw Error(`Invalid checkov version: ${checkovVersion}`);
         }
@@ -66,6 +79,8 @@ export const getCheckovVersion = (): string => {
         if (!semver.satisfies(checkovVersion, `>=${minCheckovVersion}`)) {
             throw Error(`Invalid checkov version: ${checkovVersion} (must be >=${minCheckovVersion})`);
         }
+
+        logger.debug(`Cleaned version: ${clean}`);
 
         return clean;
     }
