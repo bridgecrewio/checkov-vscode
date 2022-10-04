@@ -42,7 +42,7 @@ export function activate(context: vscode.ExtensionContext): void {
             try {
                 extensionReady = false;
                 setSyncingStatusBarItem(checkovInstallation?.version, 'Updating Checkov');
-                const checkovVersion = getCheckovVersion();
+                const checkovVersion = await getCheckovVersion(logger);
                 checkovInstallation = await installOrUpdateCheckov(logger, checkovInstallationDir, checkovVersion);
                 logger.info('Checkov installation: ', checkovInstallation);
                 checkovInstallation.version = await runVersionCommand(logger, checkovInstallation.checkovPath, checkovVersion);
@@ -159,7 +159,7 @@ export function activate(context: vscode.ExtensionContext): void {
         const certPath = getPathToCert();
         const useBcIds = getUseBcIds();
         const debugLogs = getUseDebugLogs();
-        const checkovVersion = getCheckovVersion();
+        const checkovVersion = await getCheckovVersion(logger);
         const externalChecksDir = getExternalChecksDir();
         vscode.commands.executeCommand(REMOVE_DIAGNOSTICS_COMMAND);
         if (!fileUri && vscode.window.activeTextEditor && !isSupportedFileType(vscode.window.activeTextEditor.document.fileName, true))

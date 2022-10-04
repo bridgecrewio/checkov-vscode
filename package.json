@@ -82,7 +82,7 @@
         "checkov.checkovVersion": {
           "title": "Checkov version",
           "type": "string",
-          "markdownDescription": "The Checkov scanner version to use (e.g., 2.0.123). Enter 'latest' or leave blank to always use the latest version. Be sure to run the 'Install or Update Checkov' command after changing this value. Use the 'About Checkov' command to view the current version.",
+          "markdownDescription": "The Checkov scanner version to use (e.g., 2.0.123). Enter 'latest' or leave blank to always use the latest version. Enter 'platform' to use the version currently used by the Bridgecrew / Prisma platform. Be sure to run the 'Install or Update Checkov' command after changing this value. Use the 'About Checkov' command to view the current version.",
           "readOnly": true
         },
         "checkov.disableErrorMessage": {
@@ -135,6 +135,7 @@
     "vscode-test": "^1.6.1"
   },
   "dependencies": {
+    "axios": "^0.27.2",
     "lodash": "^4.17.21",
     "semver": "^7.3.7",
     "winston": "^3.7.2"
