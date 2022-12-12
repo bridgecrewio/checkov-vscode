@@ -13,11 +13,30 @@ const provideFixCodeActions = (workspaceState: vscode.Memento) => (document: vsc
         .reduce((prev, current) => [...prev, ...current], []);
 };
 
-const generateSkipComment = (checkId: string) => `\t# checkov:skip=${checkId}: ADD REASON\n` ;
+const getCommentStringByFileName = (file: string): string => {
+    const specialFilesDict: { [key: string]: string } = {
+        ts: '//',
+        js: '//',
+        go: '//',
+        java: '//',
+        cpp: '//',
+        cc: '//',
+        cs: '//',
+        php: '//',
+        swift: '//'
+    };
+
+    const parts = file.split('.');
+    const fileType = parts[parts.length - 1];
+
+    return specialFilesDict[fileType] || '#';
+};
+
+const generateSkipComment = (checkId: string, file: string) => `\t${getCommentStringByFileName(file)} checkov:skip=${checkId}: ADD REASON\n`;
 
 const createCommandCodeAction = (document: vscode.TextDocument, diagnostic: vscode.Diagnostic, checkovCheck: FailedCheckovCheck): vscode.CodeAction[] => {
     const skipEdit: vscode.WorkspaceEdit = new vscode.WorkspaceEdit();
-    skipEdit.insert(document.uri, document.lineAt(checkovCheck.fileLineRange[0]).range.start, generateSkipComment(checkovCheck.checkId));
+    skipEdit.insert(document.uri, document.lineAt(checkovCheck.fileLineRange[0]).range.start, generateSkipComment(checkovCheck.checkId, document.fileName));
     const skipCommand = checkovCheck.checkId.includes('_K8S_') ? [] : [
         {
             title: `Generate skip comment for - ${checkovCheck.checkName}`,

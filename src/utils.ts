@@ -33,6 +33,9 @@ export const checkovVersionApi = 'api/v1/checkovVersion';
 
 const maxCacheSizePerFile = 10;
 
+const unsupportedExtensions: string[] = [];
+const unsupportedFileNames: string[] = [];
+
 export type TokenType = 'bc-token' | 'prisma';
 
 export type FileScanCacheEntry = {
@@ -53,7 +56,9 @@ export const asyncExec = async (commandToExecute: string, options: ExecOptions =
 };
 
 export const isSupportedFileType = (fileName: string, showMessage = false): boolean => {
-    if (!(fileName.endsWith('.tf') || fileName.endsWith('.yml') || fileName.endsWith('.yaml') || fileName.endsWith('.json') || fileName.endsWith('.bicep') || fileName.match('Dockerfile') || fileName.endsWith('.gradle')  || fileName.endsWith('.gradle.kts')  || fileName.endsWith('.sum')  || fileName.endsWith('.properties')  || fileName.endsWith('.xml')  || fileName.endsWith('.txt') || fileName.match('METADATA'))) {
+    const isExtensionNotSupported = unsupportedExtensions.some(extension => fileName.endsWith(extension));
+    const isFileNameNotSupported = unsupportedFileNames.some(name => fileName.match(name));
+    if (isExtensionNotSupported || isFileNameNotSupported) {
         showMessage && showUnsupportedFileMessage();
         return false;
     }
