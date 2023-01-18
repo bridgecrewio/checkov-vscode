@@ -119,6 +119,7 @@
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
+    "@types/dockerode": "^3.3.14",
     "@types/glob": "^7.2.0",
     "@types/js-yaml": "^4.0.5",
     "@types/lodash": "^4.14.182",
@@ -136,6 +137,7 @@
   },
   "dependencies": {
     "axios": "^0.27.2",
+    "dockerode": "^3.3.4",
     "lodash": "^4.17.21",
     "semver": "^7.3.7",
     "winston": "^3.7.2"

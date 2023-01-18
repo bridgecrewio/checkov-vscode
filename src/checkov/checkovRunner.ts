@@ -2,10 +2,13 @@ import * as vscode from 'vscode';
 import { spawn } from 'child_process';
 import * as path from 'path';
 import { Logger } from 'winston';
+import Docker from 'dockerode';
 import { CheckovInstallation } from './checkovInstaller';
-import { convertToUnixPath, getGitRepoName, getDockerPathParams, runVersionCommand, normalizePath } from '../utils';
+import { convertToUnixPath, getGitRepoName, getDockerPathParams, normalizePath } from '../utils';
 import { CheckovResponse, CheckovResponseRaw } from './models';
 import { parseCheckovResponse } from './checkovParser';
+
+const docker = new Docker();
 
 const dockerMountDir = '/checkovScan';
 const configMountDir = '/checkovConfig';
@@ -30,7 +33,7 @@ const getPathParamsForDockerRun = (mountDir: string, filePath: string | undefine
     return [dockerParams, checkovParams];
 };
 
-const getDockerRunParams = (workspaceRoot: string | undefined, filePath: string, extensionVersion: string, configFilePath: string | undefined, checkovVersion: string | undefined, prismaUrl: string | undefined, externalChecksDir: string |undefined, certPath: string | undefined, debugLogs: boolean | undefined) => {
+const getDockerRunParams = (workspaceRoot: string | undefined, filePath: string, extensionVersion: string, configFilePath: string | undefined, checkovVersion: string | undefined, prismaUrl: string | undefined, externalChecksDir: string |undefined, certPath: string | undefined, debugLogs: boolean | undefined, uniqueName: string) => {
     const image = `bridgecrew/checkov:${checkovVersion}`;
     const pathParams = getDockerPathParams(workspaceRoot, filePath);
     // if filepath is within the workspace, then the mount root will be the workspace path, and the file path will be the relative file path from there.
@@ -39,12 +42,13 @@ const getDockerRunParams = (workspaceRoot: string | undefined, filePath: string,
     const filePathToScan = convertToUnixPath(pathParams[0] ? pathParams[1] : path.basename(filePath));
     const prismaUrlParams = prismaUrl ? ['--env', `PRISMA_API_URL=${prismaUrl}`] : [];
     const debugLogParams = debugLogs ? ['--env', 'LOG_LEVEL=DEBUG'] : [];
+    const nameParam = `--name ${uniqueName}`;
 
     const [caCertDockerParams, caCertCheckovParams] = getPathParamsForDockerRun(caMountDir, certPath, '--ca-certificate');
     const [configFileDockerParams, configFileCheckovParams] = getPathParamsForDockerRun(configMountDir, configFilePath, '--config-file');
     const [externalChecksDockerParams, externalChecksCheckovParams] = getPathParamsForDockerRun(externalChecksMountDir, externalChecksDir, '--external-checks-dir');
     
-    const dockerParams = ['run', '--rm', '--tty', ...prismaUrlParams, ...debugLogParams, '--env', 'BC_SOURCE=vscode', '--env', `BC_SOURCE_VERSION=${extensionVersion}`,
+    const dockerParams = ['run', '--rm', '--tty', nameParam, ...prismaUrlParams, ...debugLogParams, '--env', 'BC_SOURCE=vscode', '--env', `BC_SOURCE_VERSION=${extensionVersion}`,
         '-v', `"${mountRoot}:${dockerMountDir}"`, ...caCertDockerParams, ...configFileDockerParams, ...externalChecksDockerParams, '-w', dockerMountDir];
     
     return [...dockerParams, image, ...configFileCheckovParams, ...caCertCheckovParams, ...externalChecksCheckovParams, '-f', filePathToScan];
@@ -60,7 +64,9 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
     certPath: string | undefined, useBcIds: boolean | undefined, debugLogs: boolean | undefined, cancelToken: vscode.CancellationToken, configPath: string | undefined, checkovVersion: string,  prismaUrl: string | undefined, externalChecksDir: string | undefined): Promise<CheckovResponse> => {
     return new Promise((resolve, reject) => {   
         const { checkovInstallationMethod, checkovPath } = checkovInstallation;
-        const dockerRunParams = checkovInstallationMethod === 'docker' ? getDockerRunParams(vscode.workspace.rootPath, fileName, extensionVersion, configPath, checkovInstallation.version, prismaUrl, externalChecksDir, certPath, debugLogs) : [];
+        const timestamp = Date.now();
+        const uniqueRunName = `vscode-checkov-${timestamp}`;
+        const dockerRunParams = checkovInstallationMethod === 'docker' ? getDockerRunParams(vscode.workspace.rootPath, fileName, extensionVersion, configPath, checkovInstallation.version, prismaUrl, externalChecksDir, certPath, debugLogs, uniqueRunName) : [];
         const pipRunParams =  ['pipenv', 'pip3'].includes(checkovInstallationMethod) ? getpipRunParams(configPath) : [];
         const filePathParams = checkovInstallationMethod === 'docker' ? [] : ['-f', `"${fileName}"`];
         const certificateParams: string[] = certPath && checkovInstallationMethod !== 'docker' ? ['-ca', `"${certPath}"`] : [];
@@ -74,11 +80,8 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
                 ...repoIdParams, ...filePathParams, ...skipCheckParam, '-o', 'json', ...pipRunParams, ...externalChecksParams];
             logger.info('Running checkov:');
             logger.info(`${checkovPath} ${checkovArguments.map(argument => argument === token ? '****' : argument).join(' ')}`);
-        
-            runVersionCommand(logger, checkovPath, checkovVersion);
 
             const debugLogEnv = debugLogs ? { LOG_LEVEL: 'DEBUG' } : {};
-        
             const ckv = spawn(checkovPath, checkovArguments,
                 {
                     shell: true,
@@ -133,9 +136,20 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
                 }
             });
 
-            cancelToken.onCancellationRequested((cancelEvent) => {
-                ckv.kill('SIGABRT');
+            cancelToken.onCancellationRequested(async (cancelEvent) => {
                 logger.info('Cancellation token invoked, aborting checkov run.', { cancelEvent });
+                if (checkovInstallationMethod === 'docker') {
+                    const container = docker.getContainer(uniqueRunName);
+                    await container.kill().catch(err => {
+                        if (err.reason === 'no such container') {
+                            logger.info(`not deleting container ${uniqueRunName} as it was already removed`);
+                        } else {
+                            logger.warn(`failed to delete container ${uniqueRunName}: ${err}`);
+                        }
+                    });
+                } else {
+                    ckv.kill('SIGABRT');
+                }
             });
         });
     });
