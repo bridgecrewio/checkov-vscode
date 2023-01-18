@@ -2,10 +2,9 @@ import * as vscode from 'vscode';
 import { spawn } from 'child_process';
 import * as path from 'path';
 import { Logger } from 'winston';
-import { v4 as uuidv4 } from 'uuid';
 import Docker from 'dockerode';
 import { CheckovInstallation } from './checkovInstaller';
-import { convertToUnixPath, getGitRepoName, getDockerPathParams, runVersionCommand, normalizePath } from '../utils';
+import { convertToUnixPath, getGitRepoName, getDockerPathParams, normalizePath } from '../utils';
 import { CheckovResponse, CheckovResponseRaw } from './models';
 import { parseCheckovResponse } from './checkovParser';
 
@@ -65,8 +64,8 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
     certPath: string | undefined, useBcIds: boolean | undefined, debugLogs: boolean | undefined, cancelToken: vscode.CancellationToken, configPath: string | undefined, checkovVersion: string,  prismaUrl: string | undefined, externalChecksDir: string | undefined): Promise<CheckovResponse> => {
     return new Promise((resolve, reject) => {   
         const { checkovInstallationMethod, checkovPath } = checkovInstallation;
-        const uuid = uuidv4();
-        const uniqueRunName = `vscode-checkov-${uuid}`;
+        const timestamp = Date.now();
+        const uniqueRunName = `vscode-checkov-${timestamp}`;
         const dockerRunParams = checkovInstallationMethod === 'docker' ? getDockerRunParams(vscode.workspace.rootPath, fileName, extensionVersion, configPath, checkovInstallation.version, prismaUrl, externalChecksDir, certPath, debugLogs, uniqueRunName) : [];
         const pipRunParams =  ['pipenv', 'pip3'].includes(checkovInstallationMethod) ? getpipRunParams(configPath) : [];
         const filePathParams = checkovInstallationMethod === 'docker' ? [] : ['-f', `"${fileName}"`];
@@ -137,10 +136,20 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
                 }
             });
 
-            cancelToken.onCancellationRequested((cancelEvent) => {
-                const container = docker.getContainer(uniqueRunName);
-                container.kill();
-                logger.info('Cancellation token invoked, aborting checkov run.', { uniqueRunName, cancelEvent });
+            cancelToken.onCancellationRequested(async (cancelEvent) => {
+                logger.info('Cancellation token invoked, aborting checkov run.', { cancelEvent });
+                if (checkovInstallationMethod === 'docker') {
+                    const container = docker.getContainer(uniqueRunName);
+                    await container.kill().catch(err => {
+                        if (err.reason === 'no such container') {
+                            logger.info(`not deleting container ${uniqueRunName} as it was already removed`);
+                        } else {
+                            logger.warn(`failed to delete container ${uniqueRunName}: ${err}`);
+                        }
+                    });
+                } else {
+                    ckv.kill('SIGABRT');
+                }
             });
         });
     });
