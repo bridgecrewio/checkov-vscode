@@ -33,7 +33,7 @@ export const checkovVersionApi = 'api/v1/checkovVersion';
 
 const maxCacheSizePerFile = 10;
 
-const unsupportedExtensions: string[] = [];
+const unsupportedExtensions: string[] = ['.log'];
 const unsupportedFileNames: string[] = [];
 
 export type TokenType = 'bc-token' | 'prisma';
