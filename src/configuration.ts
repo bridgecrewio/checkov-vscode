@@ -46,6 +46,12 @@ export const getUseDebugLogs = (): boolean | undefined => {
     return useDebugLogs;
 };
 
+export const getNoCertVerify = (): boolean | undefined => {
+    const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('checkov');
+    const noCertVerify = configuration.get<boolean>('noCertVerify', false);
+    return noCertVerify;
+};
+
 export const getCheckovVersion = async (logger: Logger): Promise<string> => {
 
     const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('checkov');
