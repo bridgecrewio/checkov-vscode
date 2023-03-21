@@ -1,6 +1,6 @@
 {
   "name": "checkov",
-  "version": "1.0.93",
+  "version": "1.0.94",
   "displayName": "Checkov",
   "publisher": "Bridgecrew",
   "description": "Find and fix misconfigurations in infrastructure-as-code manifests like Terraform, Kubernetes, Cloudformation, Serverless framework, Arm templates using Checkov - static analysis for infrastructure as code .",
@@ -107,9 +107,9 @@
           "type": "string"
         },
         "checkov.noCertVerify": {
-            "title": "Skip SSL cert verification",
-            "markdownDescription": "Skip SSL certificate verification. Use this to bypass errors related to SSL certificates. Warning: this should only be used for testing purposes. Skipping certificate verification is dangerous as invalid and falsified certificates cannot be detected.",
-            "type": "boolean"
+          "title": "Skip SSL cert verification",
+          "markdownDescription": "Skip SSL certificate verification. Use this to bypass errors related to SSL certificates. Warning: this should only be used for testing purposes. Skipping certificate verification is dangerous as invalid and falsified certificates cannot be detected.",
+          "type": "boolean"
         }
       }
     }
