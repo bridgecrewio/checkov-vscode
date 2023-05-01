@@ -32,7 +32,7 @@ const getCommentStringByFileName = (file: string): string => {
     return specialFilesDict[fileType] || '#';
 };
 
-const generateSkipComment = (checkId: string, file: string) => `\t${getCommentStringByFileName(file)} checkov:skip=${checkId}: ADD REASON\n`;
+const generateSkipComment = (checkId: string, file: string) => `${getCommentStringByFileName(file)} checkov:skip=${checkId}: ADD REASON\n`;
 
 const createCommandCodeAction = (document: vscode.TextDocument, diagnostic: vscode.Diagnostic, checkovCheck: FailedCheckovCheck): vscode.CodeAction[] => {
     const skipEdit: vscode.WorkspaceEdit = new vscode.WorkspaceEdit();
