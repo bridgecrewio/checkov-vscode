@@ -110,21 +110,6 @@ export function activate(context: vscode.ExtensionContext): void {
                 || !isSupportedFileType(changeEvent.document.fileName))
                 return;
             vscode.commands.executeCommand(REMOVE_DIAGNOSTICS_COMMAND);
-            // Run scan on enter (new line)
-            if (!changeEvent.contentChanges.some(change => change.text.includes('\n'))) return;
-
-            const tempFileUri: vscode.Uri = vscode.Uri.joinPath(context.globalStorageUri, tempScanFile);
-            const text: string = changeEvent.document.getText();
-            const stringBuffer: Uint8Array = new TextEncoder().encode(text);
-
-            // Save changes in temp file
-            vscode.workspace.fs.writeFile(tempFileUri, stringBuffer)
-                .then(() => {
-                    logger.debug('Saved temporary file, now scanning', { tempFile: tempFileUri.fsPath });
-                    vscode.commands.executeCommand(RUN_FILE_SCAN_COMMAND, tempFileUri);
-                }, error => {
-                    logger.error('Error occurred trying to save temp file', { error });
-                });
         }),
         vscode.workspace.onDidSaveTextDocument(saveEvent => {
             if (!extensionReady) return;
