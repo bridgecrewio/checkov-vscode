@@ -113,12 +113,12 @@
         },
         "checkov.skipFrameworks": {
           "title": "Skip Frameworks",
-          "markdownDescription": "Comma-separated list of frameworks to skip (e.g., 'arm, json, secrets, serverless'). \n This is useful if you do not need to scan or do not have the required license for a specific framework. \n See [Checkov Frameworks](https://www.checkov.io/2.Basics/CLI%20Command%20Reference.html) for more information.",
+          "markdownDescription": "Filter scan to skip specific frameworks (e.g., 'arm json secrets serverless').  \n Add multiple frameworks using spaces.  \n See [Checkov Frameworks](https://www.checkov.io/2.Basics/CLI%20Command%20Reference.html) for more information.",
           "type": "string"
         },
         "checkov.frameworks": {
           "title": "Frameworks",
-          "markdownDescription": "Comma-separated list of frameworks to scan (e.g., 'arm, json, secrets, serverless'). \n This is useful if you only want to scan specific frameworks. \n See [Checkov Frameworks](https://www.checkov.io/2.Basics/CLI%20Command%20Reference.html) for more information.",
+          "markdownDescription": "Filter scan to run only on specific frameworks (e.g., 'arm json secrets serverless').  \n Add multiple frameworks using spaces.  \n See [Checkov Frameworks](https://www.checkov.io/2.Basics/CLI%20Command%20Reference.html) for more information.",
           "type": "string"
         }
       }

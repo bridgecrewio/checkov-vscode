@@ -55,13 +55,13 @@ export const getNoCertVerify = (): boolean | undefined => {
 export const getSkipFrameworks = (): string[] | undefined => {
     const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('checkov');
     const skipFrameworks = configuration.get<string>('skipFrameworks');
-    return skipFrameworks ? skipFrameworks.split(',').map(entry => entry.trim()) : undefined;
+    return skipFrameworks ? skipFrameworks.split(' ').map(entry => entry.trim()) : undefined;
 };
 
 export const getFrameworks = (): string[] | undefined => {
     const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('checkov');
     const frameworks = configuration.get<string>('frameworks');
-    return frameworks ? frameworks.split(',').map(entry => entry.trim()) : undefined;
+    return frameworks ? frameworks.split(' ').map(entry => entry.trim()) : undefined;
 };
 
 
