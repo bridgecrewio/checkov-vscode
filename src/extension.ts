@@ -7,7 +7,7 @@ import { applyDiagnostics } from './diagnostics';
 import { fixCodeActionProvider, providedCodeActionKinds } from './suggestFix';
 import { getLogger, saveCheckovResult, isSupportedFileType, extensionVersion, runVersionCommand, getFileHash, saveCachedResults, getCachedResults, clearCache, checkovVersionKey } from './utils';
 import { initializeStatusBarItem, setErrorStatusBarItem, setPassedStatusBarItem, setReadyStatusBarItem, setSyncingStatusBarItem, showAboutCheckovMessage, showContactUsDetails } from './userInterface';
-import { assureTokenSet, getCheckovVersion, shouldDisableErrorMessage, getPathToCert, getUseBcIds, getPrismaUrl, getUseDebugLogs, getExternalChecksDir, getNoCertVerify } from './configuration';
+import { assureTokenSet, getCheckovVersion, shouldDisableErrorMessage, getPathToCert, getUseBcIds, getPrismaUrl, getUseDebugLogs, getExternalChecksDir, getNoCertVerify, getSkipFrameworks, getFrameworks } from './configuration';
 import { CLEAR_RESULTS_CACHE, GET_INSTALLATION_DETAILS_COMMAND, INSTALL_OR_UPDATE_CHECKOV_COMMAND, OPEN_CHECKOV_LOG, OPEN_CONFIGURATION_COMMAND, OPEN_EXTERNAL_COMMAND, REMOVE_DIAGNOSTICS_COMMAND, RUN_FILE_SCAN_COMMAND } from './commands';
 import { getConfigFilePath } from './parseCheckovConfig';
 
@@ -147,6 +147,8 @@ export function activate(context: vscode.ExtensionContext): void {
         const noCertVerify = getNoCertVerify();
         const checkovVersion = await getCheckovVersion(logger);
         const externalChecksDir = getExternalChecksDir();
+        const skipFrameworks = getSkipFrameworks();
+        const frameworks = getFrameworks();
         vscode.commands.executeCommand(REMOVE_DIAGNOSTICS_COMMAND);
         if (!fileUri && vscode.window.activeTextEditor && !isSupportedFileType(vscode.window.activeTextEditor.document.fileName, true))
             return;
@@ -164,11 +166,11 @@ export function activate(context: vscode.ExtensionContext): void {
                     logger.debug(`useCache is true, but did not find cached results for file: ${vscode.window.activeTextEditor.document.fileName}, hash: ${hash}`);
                 }
             }
-            await runScan(vscode.window.activeTextEditor, token, certPath, useBcIds, debugLogs, noCertVerify, checkovRunCancelTokenSource.token, checkovVersion, prismaUrl, externalChecksDir, fileUri);
+            await runScan(vscode.window.activeTextEditor, token, certPath, useBcIds, debugLogs, noCertVerify, checkovRunCancelTokenSource.token, checkovVersion, prismaUrl, externalChecksDir, fileUri, skipFrameworks, frameworks);
         }
     };
 
-    const runScan = debounce(async (editor: vscode.TextEditor, token: string, certPath: string | undefined, useBcIds: boolean | undefined, debugLogs: boolean | undefined, noCertVerify: boolean | undefined, cancelToken: vscode.CancellationToken, checkovVersion: string, prismaUrl: string | undefined, externalChecksDir: string | undefined, fileUri?: vscode.Uri): Promise<void> => {
+    const runScan = debounce(async (editor: vscode.TextEditor, token: string, certPath: string | undefined, useBcIds: boolean | undefined, debugLogs: boolean | undefined, noCertVerify: boolean | undefined, cancelToken: vscode.CancellationToken, checkovVersion: string, prismaUrl: string | undefined, externalChecksDir: string | undefined, fileUri?: vscode.Uri, skipFrameworks?: string[] | undefined, frameworks?: string[] | undefined): Promise<void> => {
         logger.info('Starting to scan.');
         try {
             setSyncingStatusBarItem(checkovInstallation?.version, 'Checkov scanning');
@@ -180,7 +182,7 @@ export function activate(context: vscode.ExtensionContext): void {
                 return;
             }
 
-            const checkovResponse = await runCheckovScan(logger, checkovInstallation, extensionVersion, filePath, token, certPath, useBcIds, debugLogs, noCertVerify, cancelToken, configPath, checkovVersion, prismaUrl, externalChecksDir);
+            const checkovResponse = await runCheckovScan(logger, checkovInstallation, extensionVersion, filePath, token, certPath, useBcIds, debugLogs, noCertVerify, cancelToken, configPath, checkovVersion, prismaUrl, externalChecksDir, skipFrameworks, frameworks);
             handleScanResults(filePath, editor, context.workspaceState, checkovResponse.results.failedChecks, logger);
         } catch (error) {
             if (cancelToken.isCancellationRequested) {
