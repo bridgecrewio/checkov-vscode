@@ -52,6 +52,19 @@ export const getNoCertVerify = (): boolean | undefined => {
     return noCertVerify;
 };
 
+export const getSkipFrameworks = (): string[] | undefined => {
+    const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('checkov');
+    const skipFrameworks = configuration.get<string>('skipFrameworks');
+    return skipFrameworks ? skipFrameworks.split(' ').map(entry => entry.trim()) : undefined;
+};
+
+export const getFrameworks = (): string[] | undefined => {
+    const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('checkov');
+    const frameworks = configuration.get<string>('frameworks');
+    return frameworks ? frameworks.split(' ').map(entry => entry.trim()) : undefined;
+};
+
+
 export const getCheckovVersion = async (logger: Logger): Promise<string> => {
 
     const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('checkov');

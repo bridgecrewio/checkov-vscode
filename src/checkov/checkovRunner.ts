@@ -62,7 +62,7 @@ const cleanupStdout = (stdout: string) => stdout.replace(/.\[0m/g,''); // Clean 
 
 export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInstallation, extensionVersion: string, fileName: string, token: string, 
     certPath: string | undefined, useBcIds: boolean | undefined, debugLogs: boolean | undefined, noCertVerify: boolean | undefined, cancelToken: vscode.CancellationToken, 
-    configPath: string | undefined, checkovVersion: string,  prismaUrl: string | undefined, externalChecksDir: string | undefined): Promise<CheckovResponse> => {
+    configPath: string | undefined, checkovVersion: string,  prismaUrl: string | undefined, externalChecksDir: string | undefined, skipFrameworks: string[] | undefined, frameworks: string[] | undefined): Promise<CheckovResponse> => {
     return new Promise((resolve, reject) => {   
         const { checkovInstallationMethod, checkovPath } = checkovInstallation;
         const timestamp = Date.now();
@@ -75,11 +75,13 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
         const noCertVerifyParam: string[] = noCertVerify ? ['--no-cert-verify'] : [];
         const skipCheckParam: string[] = skipChecks.length ? ['--skip-check', skipChecks.join(',')] : [];
         const externalChecksParams: string[] = externalChecksDir && checkovInstallationMethod !== 'docker' ? ['--external-checks-dir', externalChecksDir] : [];
+        const frameworkParams: string[] = frameworks ? ['--framework', frameworks.join(' ')] : [];
+        const skipFrameworkParams: string[] = skipFrameworks ? ['--skip-framework', skipFrameworks.join(' ')] : [];
         const workingDir = vscode.workspace.rootPath;
         getGitRepoName(logger, vscode.window.activeTextEditor?.document.fileName).then((repoName) => {
             const repoIdParams = repoName ? ['--repo-id', repoName] : [];
             const checkovArguments: string[] = [...dockerRunParams, ...certificateParams, ...bcIdParam, ...noCertVerifyParam, '-s', '--bc-api-key', token, 
-                ...repoIdParams, ...filePathParams, ...skipCheckParam, '-o', 'json', ...pipRunParams, ...externalChecksParams];
+                ...repoIdParams, ...filePathParams, ...skipCheckParam, '-o', 'json', ...pipRunParams, ...externalChecksParams, ...frameworkParams, ...skipFrameworkParams];
             logger.info('Running checkov:');
             logger.info(`${checkovPath} ${checkovArguments.map(argument => argument === token ? '****' : argument).join(' ')}`);
 
