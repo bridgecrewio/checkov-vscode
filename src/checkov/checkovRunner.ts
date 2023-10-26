@@ -79,7 +79,7 @@ export const runCheckovScan = (logger: Logger, checkovInstallation: CheckovInsta
         const skipFrameworkParams: string[] = skipFrameworks ? ['--skip-framework', skipFrameworks.join(' ')] : [];
         const workingDir = vscode.workspace.rootPath;
         getGitRepoName(logger, vscode.window.activeTextEditor?.document.fileName).then((repoName) => {
-            const repoIdParams = repoName ? ['--repo-id', repoName] : [];
+            const repoIdParams = repoName ? ['--repo-id', repoName] : ['--repo-id', 'vscode/default'];
             const checkovArguments: string[] = [...dockerRunParams, ...certificateParams, ...bcIdParam, ...noCertVerifyParam, '-s', '--bc-api-key', token, 
                 ...repoIdParams, ...filePathParams, ...skipCheckParam, '-o', 'json', ...pipRunParams, ...externalChecksParams, ...frameworkParams, ...skipFrameworkParams];
             logger.info('Running checkov:');
