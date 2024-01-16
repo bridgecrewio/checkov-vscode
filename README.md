@@ -1,21 +1,20 @@
 [![checkov](https://raw.githubusercontent.com/bridgecrewio/checkov/master/docs/web/images/checkov_by_bridgecrew.png)](https://checkov.io)
 
-[![Maintained by Bridgecrew.io](https://img.shields.io/badge/maintained%20by-bridgecrew.io-blueviolet)](https://bridgecrew.io/?utm_source=github&utm_medium=organic_oss&utm_campaign=checkov-vscode)
 [![build status](https://github.com/bridgecrewio/checkov-vscode/workflows/build/badge.svg)](https://github.com/bridgecrewio/checkov-vscode/actions?query=workflow%3Abuild)
 [![Installs-count](https://vsmarketplacebadges.dev/installs-short/Bridgecrew.checkov.png)](https://marketplace.visualstudio.com/items?itemName=Bridgecrew.checkov)
-[![slack-community](https://img.shields.io/badge/Slack-contact%20us-lightgrey.svg?logo=slack)](https://slack.bridgecrew.io/?utm_source=github&utm_medium=organic_oss&utm_campaign=checkov-vscode)
+[![slack-community](https://img.shields.io/badge/Slack-contact%20us-lightgrey.svg?logo=slack)](https://codifiedsecurity.slack.com/)
 
 # Checkov Extension for Visual Studio Code
 
-[Checkov](https://github.com/bridgecrewio/checkov) is a static code analysis tool for infrastructure-as-code.
+[Checkov](https://github.com/bridgecrewio/checkov) is a static code analysis tool for infrastructure-as-code, secrets, and software composition analysis.
 
-The Checkov Extension for VSCODE enables developers to get real-time scan results, as well as inline fix suggestions as they develop cloud infrastructure.
+The Checkov Extension for Visual Studio Code enables developers to get real-time scan results, as well as inline fix suggestions as they develop cloud infrastructure.
 
 ![Checkov VSCode plugin in action!](./docs/checkov-vscode-demo.gif)
 
 The extension is currently available for download directly from the [Visual Studio Extension Marketplace](https://marketplace.visualstudio.com/items?itemName=Bridgecrew.checkov) and its source code is available in an [Apache 2.0 licensed repository](https://github.com/bridgecrewio/checkov-vscode). Development of the extension is ongoing and it is available for pre-release usage 🚧 .
 
-Activating the extension requires submission of one-time Bridgecrew API Token that can be obtained by [creating a new Bridgecrew platform account](https://docs.bridgecrew.io/docs/get-api-token). It uses open [Bridgecrew Developer APIs](https://docs.bridgecrew.io/reference) to evaluate code and offer automated inline fixes. For more information about data shared with Bridgecrew see the [Disclaimer](#disclaimer) section below).
+Activating the extension requires a Prisma Cloud Access Key and API. It uses Prisma Cloud APIs to evaluate code and offer automated inline fixes. For more information about data shared with Prisma Cloud see the [Disclaimer](#disclaimer) section below).
 
 Extension features include:
 
@@ -41,10 +40,8 @@ The Checkov extension will invoke the latest version of ```Checkov```.
 
 ### Configuration
 
-* Sign up to a Bridgecrew Community account [here](http://bridgecrew.cloud/). If you already have an account, sign in and go to the next step.
-
-* From [Integrations](https://www.bridgecrew.cloud/integrations/api-token), select **API Token** and copy the API key.
-* In Visual Studio Code, enter your API Token in the Checkov Extension settings page.  
+* In Prisma Cloud, go to Settings > Access Control > Add > Access Key and copy the keys.
+* In Visual Studio Code, enter your keys and API endpoint in the Checkov Extension settings page.  
 * Using a custom CA certificate is possible. If needed, set the path to the certificate file in the Checkov Extension settings page.
 
 * If you find the error message noisy, you're able to disable it entirely by selecting `Disable error message` in the Checkov Extension settings page.
@@ -94,13 +91,5 @@ Looking to contribute new checks? Learn how to write a new check (AKA policy) [h
 
 ## Disclaimer
 
-To use this checkov-vscode extension, you will need to create a free account at bridgecrew.cloud using your e-mail, the plugin uses Bridgecrew.cloud's fixes API to analyse and produce code fixes, and enrich the results provided into VSCode. Please notice bridgecrew [privacy policy](https://bridgecrew.io/privacy-policy/?utm_source=github&utm_medium=organic_oss&utm_campaign=checkov-vscode) for more details on collected data when using bridgecrew application.
+To use this plugin, you will need a Prisma Cloud account. The plugin uses Prisma Cloud's fixes API to analyse and produce code fixes, and enrich the results provided into the IDE. Please notice the Prisma Cloud [privacy policy](paloaltonetworks.com/legal-notices/trust-center/privacy) for more details.
 To generate fixes, files found to have triggered checkov violations are made available to the fixes API for the sole purpose of generating inline fixes code recommendations.
-
-## Support
-
-[Bridgecrew](https://bridgecrew.io/?utm_source=github&utm_medium=organic_oss&utm_campaign=checkov-vscode) builds and maintains Checkov to make policy-as-code simple and accessible.
-
-Start with our [Documentation](https://bridgecrewio.github.io/checkov/) for quick tutorials and examples.
-
-If you need direct support you can contact us at [info@bridgecrew.io](mailto:info@bridgecrew.io).
