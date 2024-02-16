@@ -14,8 +14,8 @@ export const assureTokenSet = (logger: Logger, openConfigurationCommand: string,
     const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('checkov');
     const token = configuration.get<string>('token');
     if (!token) {
-        logger.error('Bridgecrew API token was not found. Please add it to the configuration.');
-        vscode.window.showErrorMessage('Bridgecrew API token was not found. Please add it to the configuration in order to scan your code.', 'Open configuration')
+        logger.error('API token was not found. Please add it to the configuration.');
+        vscode.window.showErrorMessage('API token was not found. Please add it to the configuration in order to scan your code.', 'Open configuration')
             .then(choice => choice === 'Open configuration' && vscode.commands.executeCommand(openConfigurationCommand));
         setMissingConfigurationStatusBarItem(checkovInstallation?.version);
     } else if (getTokenType(token) === 'prisma' && !getPrismaUrl()) {
