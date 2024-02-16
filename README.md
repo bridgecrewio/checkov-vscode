@@ -1,5 +1,3 @@
-[![checkov](https://raw.githubusercontent.com/bridgecrewio/checkov/master/docs/web/images/checkov_by_bridgecrew.png)](https://checkov.io)
-
 [![build status](https://github.com/bridgecrewio/checkov-vscode/workflows/build/badge.svg)](https://github.com/bridgecrewio/checkov-vscode/actions?query=workflow%3Abuild)
 [![Installs-count](https://vsmarketplacebadges.dev/installs-short/Bridgecrew.checkov.png)](https://marketplace.visualstudio.com/items?itemName=Bridgecrew.checkov)
 [![slack-community](https://img.shields.io/badge/Slack-contact%20us-lightgrey.svg?logo=slack)](https://codifiedsecurity.slack.com/)

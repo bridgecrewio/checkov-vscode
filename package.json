@@ -64,7 +64,7 @@
         "checkov.token": {
           "title": "Token",
           "type": "string",
-          "markdownDescription": "In order to activate inline infrastructure-as-code fixes, you need to integrate with Bridgecrew's fixes API.   \n It's free to create an account and takes less than 2 minutes, Go to [Bridgecrew Platform](https://bridgecrew.cloud/) to get started.  \n Your API token can be found in the integrations tab, under \"API Token\".   \n  For Prisma Cloud users - use your access keys as token in the following format: `\"<AccessKey>::<SecretKey>\"`.  \n The extension will provide API access to the file, if checkov finds policy violations, in order to generate and supply the suggested fixes.",
+          "markdownDescription": "This plugin requires a valid Prisma Cloud Access Key and Secret Key. Use your access keys as token in the following format: `\"<AccessKey>::<SecretKey>\"`.  \n The extension will provide API access to the file, if Checkov finds policy violations, in order to generate and supply the suggested fixes.",
           "readOnly": true
         },
         "checkov.certificate": {
@@ -74,9 +74,9 @@
           "readOnly": true
         },
         "checkov.useBridgecrewIDs": {
-          "title": "Use Bridgecrew platform IDs",
+          "title": "Use Legacy Bridgecrew platform IDs",
           "type": "boolean",
-          "markdownDescription": "Whether to use Bridgecrew platform IDs (BC_...) instead of Checkov IDs (CKV_...)",
+          "markdownDescription": "Whether to use Legacy Bridgecrew platform IDs (BC_...) instead of Checkov IDs (CKV_...)",
           "readOnly": true
         },
         "checkov.checkovVersion": {
