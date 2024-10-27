@@ -2,6 +2,11 @@
 [![Installs-count](https://vsmarketplacebadges.dev/installs-short/Bridgecrew.checkov.png)](https://marketplace.visualstudio.com/items?itemName=Bridgecrew.checkov)
 [![slack-community](https://img.shields.io/badge/Slack-contact%20us-lightgrey.svg?logo=slack)](https://codifiedsecurity.slack.com/)
 
+# Archival Notice
+This repository is no longer maintained nor does the VS Code extension it encapsulate. 
+
+Checkov VS Code extension was rebranded as the Prisma Cloud VS Code plugin and can now be found [here](https://github.com/bridgecrewio/prisma-cloud-vscode-plugin)
+
 # Checkov Extension for Visual Studio Code
 
 [Checkov](https://github.com/bridgecrewio/checkov) is a static code analysis tool for infrastructure-as-code, secrets, and software composition analysis.
